@@ -1,0 +1,10 @@
+.gradle/
+**/build/
+local.properties
+upstream/
+__pycache__/
+*.pyc
+.idea/
+*.iml
+/MusicWidgetRuntime-AI-Handoff.zip
+/dist/*.apk

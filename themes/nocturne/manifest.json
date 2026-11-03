@@ -1,0 +1,157 @@
+{
+  "version": 1,
+  "id": "nocturne",
+  "name": "Nocturne",
+  "width": 720,
+  "height": 360,
+  "layers": [
+    {
+      "type": "image",
+      "x": 0,
+      "y": 0,
+      "w": 720,
+      "h": 360,
+      "src": "assets/background.png"
+    },
+    {
+      "type": "artwork",
+      "x": 43,
+      "y": 104,
+      "w": 178,
+      "h": 178,
+      "fallback": "assets/cover.png"
+    },
+    {
+      "type": "text",
+      "field": "player",
+      "x": 251,
+      "y": 96,
+      "w": 430,
+      "h": 33,
+      "size": 22,
+      "color": "#a4e9d8",
+      "font": "assets/type.ttf"
+    },
+    {
+      "type": "text",
+      "field": "title",
+      "x": 249,
+      "y": 130,
+      "w": 435,
+      "h": 61,
+      "size": 43,
+      "color": "#fcf6ff",
+      "font": "assets/type.ttf"
+    },
+    {
+      "type": "text",
+      "field": "artist",
+      "x": 251,
+      "y": 192,
+      "w": 429,
+      "h": 39,
+      "size": 27,
+      "color": "#c3bbdc",
+      "font": "assets/type.ttf"
+    },
+    {
+      "type": "text",
+      "field": "status",
+      "x": 43,
+      "y": 301,
+      "w": 181,
+      "h": 32,
+      "size": 19,
+      "color": "#a6a4ce",
+      "font": "assets/type.ttf"
+    },
+    {
+      "type": "icon",
+      "action": "previous",
+      "x": 299,
+      "y": 270,
+      "w": 49,
+      "h": 49,
+      "src": "assets/previous.png"
+    },
+    {
+      "type": "icon",
+      "action": "toggle",
+      "x": 405,
+      "y": 266,
+      "w": 57,
+      "h": 57,
+      "src": "assets/play.png",
+      "playingSrc": "assets/pause.png"
+    },
+    {
+      "type": "icon",
+      "action": "next",
+      "x": 519,
+      "y": 270,
+      "w": 49,
+      "h": 49,
+      "src": "assets/next.png"
+    },
+    {
+      "type": "icon",
+      "action": "switch",
+      "x": 625,
+      "y": 270,
+      "w": 49,
+      "h": 49,
+      "src": "assets/switch.png"
+    },
+    {
+      "type": "icon",
+      "action": "settings",
+      "x": 623,
+      "y": 15,
+      "w": 49,
+      "h": 49,
+      "src": "assets/settings.png"
+    }
+  ],
+  "touch": [
+    {
+      "action": "previous",
+      "label": "이전 곡",
+      "x": 274,
+      "y": 244,
+      "w": 100,
+      "h": 102
+    },
+    {
+      "action": "toggle",
+      "label": "재생 또는 일시 정지",
+      "x": 384,
+      "y": 244,
+      "w": 100,
+      "h": 102
+    },
+    {
+      "action": "next",
+      "label": "다음 곡",
+      "x": 494,
+      "y": 244,
+      "w": 100,
+      "h": 102
+    },
+    {
+      "action": "switch",
+      "label": "플레이어 전환",
+      "x": 600,
+      "y": 244,
+      "w": 100,
+      "h": 102
+    },
+    {
+      "action": "settings",
+      "label": "위젯 설정",
+      "x": 598,
+      "y": 2,
+      "w": 100,
+      "h": 75
+    }
+  ]
+}

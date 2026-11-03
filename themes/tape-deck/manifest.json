@@ -1,0 +1,157 @@
+{
+  "version": 1,
+  "id": "tape-deck",
+  "name": "Tape Deck",
+  "width": 720,
+  "height": 360,
+  "layers": [
+    {
+      "type": "image",
+      "x": 0,
+      "y": 0,
+      "w": 720,
+      "h": 360,
+      "src": "assets/background.png"
+    },
+    {
+      "type": "artwork",
+      "x": 495,
+      "y": 96,
+      "w": 177,
+      "h": 130,
+      "fallback": "assets/cover.png"
+    },
+    {
+      "type": "text",
+      "field": "player",
+      "x": 38,
+      "y": 94,
+      "w": 426,
+      "h": 36,
+      "size": 22,
+      "color": "#8e3426",
+      "font": "assets/type.ttf"
+    },
+    {
+      "type": "text",
+      "field": "title",
+      "x": 37,
+      "y": 130,
+      "w": 432,
+      "h": 58,
+      "size": 36,
+      "color": "#321e1c",
+      "font": "assets/type.ttf"
+    },
+    {
+      "type": "text",
+      "field": "artist",
+      "x": 38,
+      "y": 186,
+      "w": 428,
+      "h": 42,
+      "size": 26,
+      "color": "#695243",
+      "font": "assets/type.ttf"
+    },
+    {
+      "type": "text",
+      "field": "status",
+      "x": 463,
+      "y": 283,
+      "w": 193,
+      "h": 34,
+      "size": 20,
+      "color": "#803527",
+      "font": "assets/type.ttf"
+    },
+    {
+      "type": "icon",
+      "action": "previous",
+      "x": 137,
+      "y": 273,
+      "w": 49,
+      "h": 49,
+      "src": "assets/previous.png"
+    },
+    {
+      "type": "icon",
+      "action": "toggle",
+      "x": 234,
+      "y": 269,
+      "w": 57,
+      "h": 57,
+      "src": "assets/play.png",
+      "playingSrc": "assets/pause.png"
+    },
+    {
+      "type": "icon",
+      "action": "next",
+      "x": 339,
+      "y": 273,
+      "w": 49,
+      "h": 49,
+      "src": "assets/next.png"
+    },
+    {
+      "type": "icon",
+      "action": "switch",
+      "x": 522,
+      "y": 14,
+      "w": 49,
+      "h": 49,
+      "src": "assets/switch.png"
+    },
+    {
+      "type": "icon",
+      "action": "settings",
+      "x": 623,
+      "y": 14,
+      "w": 49,
+      "h": 49,
+      "src": "assets/settings.png"
+    }
+  ],
+  "touch": [
+    {
+      "action": "previous",
+      "label": "이전 곡",
+      "x": 112,
+      "y": 246,
+      "w": 100,
+      "h": 104
+    },
+    {
+      "action": "toggle",
+      "label": "재생 또는 일시 정지",
+      "x": 213,
+      "y": 246,
+      "w": 100,
+      "h": 104
+    },
+    {
+      "action": "next",
+      "label": "다음 곡",
+      "x": 314,
+      "y": 246,
+      "w": 100,
+      "h": 104
+    },
+    {
+      "action": "switch",
+      "label": "플레이어 전환",
+      "x": 497,
+      "y": 0,
+      "w": 100,
+      "h": 78
+    },
+    {
+      "action": "settings",
+      "label": "위젯 설정",
+      "x": 598,
+      "y": 0,
+      "w": 100,
+      "h": 78
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent">
+    <ImageView android:id="@+id/canvas" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:contentDescription="음악 위젯"/>
+    <FrameLayout android:id="@+id/hits" android:layout_width="match_parent" android:layout_height="match_parent"/>
+    <TextView android:id="@+id/error" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_gravity="bottom" android:background="#E6222222" android:textColor="#FFFFFFFF" android:textSize="12sp" android:padding="6dp" android:visibility="gone"/>
+</FrameLayout>
