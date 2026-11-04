@@ -7,7 +7,7 @@ Android 12 이상에서 음악 앱의 MediaSession을 통해 곡 정보와 재�
 
 ## 처음 사용하는 분
 
-1. 아래 빌드 안내로 APK를 만들고 휴대폰에 설치합니다. 이 저장소에는 APK 바이너리가 포함되어 있지 않습니다.
+1. [최신 릴리스](https://github.com/vividhyeok/music-widget-runtime/releases/latest)에서 MusicWidgetRuntime-debug.apk를 다운로드해 설치합니다. 직접 빌드하려면 아래 안내를 따릅니다.
 2. 앱에서 **알림 접근 설정 열기**를 누르고 Music Widget Runtime을 허용합니다.
 3. Spotify나 YouTube Music 등에서 음악을 재생합니다.
 4. 홈 화면의 위젯 목록에서 Music Widget Runtime을 추가하고 테마와 플레이어를 선택합니다.
