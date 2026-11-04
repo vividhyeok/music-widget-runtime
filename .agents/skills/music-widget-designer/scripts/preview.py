@@ -26,10 +26,13 @@ def runs(text, primary, fallback):
 
 def preview(package,output,title='Midnight in Seoul',artist='Luna Park',playing=True,artwork=None,fallback_font=None):
     m,files=load(package); im=Image.new('RGBA',(m['width'],m['height'])); d=ImageDraw.Draw(im)
-    values={'title':title,'artist':artist,'album':'City Lights','player':'YouTube Music','status':'재생 중' if playing else '일시 정지'}
+    values={'elapsed':'1:24','duration':'3:42','title':title,'artist':artist,'album':'City Lights','player':'YouTube Music','status':'재생 중' if playing else '일시 정지'}
     for l in m['layers']:
         x,y,w,h=[int(l[k]) for k in ('x','y','w','h')]
-        if l['type']=='text':
+        if l['type']=='progress':
+            d.rounded_rectangle((x,y,x+w,y+h),radius=h/2,fill=l['trackColor'])
+            d.rounded_rectangle((x,y,x+w*84/222,y+h),radius=h/2,fill=l['color'])
+        elif l['type']=='text':
             font=ImageFont.truetype(io.BytesIO(files[l['font']]),int(l['size']))
             fallback=system_fallback(int(l['size']),fallback_font)
             text=values[l['field']]

@@ -59,6 +59,9 @@ object Sessions {
         val image=sequenceOf(MediaMetadata.METADATA_KEY_ALBUM_ART,MediaMetadata.METADATA_KEY_ART,MediaMetadata.METADATA_KEY_DISPLAY_ICON)
             .mapNotNull { metadata?.getBitmap(it) }.firstOrNull { !it.isRecycled }
         val art=if (image?.config == Bitmap.Config.HARDWARE) image.copy(Bitmap.Config.ARGB_8888,false) else image
+        val duration=(metadata?.getLong(MediaMetadata.METADATA_KEY_DURATION) ?: 0L).coerceAtLeast(0L)
+        val elapsed=if(state?.state==PlaybackState.STATE_PLAYING && state.lastPositionUpdateTime>0) (android.os.SystemClock.elapsedRealtime()-state.lastPositionUpdateTime).coerceAtLeast(0L) else 0L
+        val position=((state?.position ?: 0L)+elapsed*(state?.playbackSpeed ?: 0f)).toLong().coerceAtLeast(0L)
         return Song(
             value(MediaMetadata.METADATA_KEY_DISPLAY_TITLE) ?: value(MediaMetadata.METADATA_KEY_TITLE) ?: "제목 없음",
             value(MediaMetadata.METADATA_KEY_ARTIST) ?: value(MediaMetadata.METADATA_KEY_ALBUM_ARTIST) ?: "아티스트 정보 없음",
@@ -69,7 +72,7 @@ object Sessions {
                 PlaybackState.STATE_BUFFERING -> "버퍼링 중"
                 PlaybackState.STATE_ERROR -> "재생 오류"
                 else -> "대기 중"
-            }, playing(state),art
+            }, playing(state),art,if(duration>0) position.coerceAtMost(duration) else position,duration
         )
     }
 
@@ -87,6 +90,19 @@ object Sessions {
                 if (flags and PlaybackState.ACTION_SKIP_TO_NEXT != 0L) { controls.skipToNext(); return true }
                 key = KeyEvent.KEYCODE_MEDIA_NEXT
             }
+            "rewind", "forward" -> {
+                if (flags and PlaybackState.ACTION_SEEK_TO == 0L || state == null) return false
+                val duration = controller.metadata?.getLong(MediaMetadata.METADATA_KEY_DURATION) ?: 0L
+                val delta = if (action == "forward") 10000L else -10000L
+                val position = (state.position + delta).coerceAtLeast(0L)
+                controls.seekTo(if (duration > 0) position.coerceAtMost(duration) else position)
+                return true
+            }
+            "stop" -> {
+                if (flags and PlaybackState.ACTION_STOP == 0L) return false
+                controls.stop()
+                return true
+            }
             "toggle" -> {
                 if (playing(state) && flags and PlaybackState.ACTION_PAUSE != 0L) { controls.pause(); return true }
                 if (!playing(state) && flags and PlaybackState.ACTION_PLAY != 0L) { controls.play(); return true }
@@ -102,7 +118,15 @@ object Sessions {
 
 class NotifListener : NotificationListenerService() {
     private val handler = Handler(Looper.getMainLooper())
-    private val refresh = Runnable { MusicWidget.refresh(this) }
+    private val refresh = object : Runnable {
+        override fun run() {
+            MusicWidget.refresh(this@NotifListener)
+            if (MusicWidget.ids(this@NotifListener).isNotEmpty() &&
+                callbacks.values.any { it.first.playbackState?.state == PlaybackState.STATE_PLAYING }) {
+                handler.postDelayed(this,5000)
+            }
+        }
+    }
     private val callbacks = mutableMapOf<MediaSession.Token, Pair<MediaController,MediaController.Callback>>()
     private val manager by lazy { getSystemService(MediaSessionManager::class.java) }
     private val listener = MediaSessionManager.OnActiveSessionsChangedListener { bind(it.orEmpty()) }

@@ -4,6 +4,9 @@ import android.app.Activity
 import android.appwidget.AppWidgetManager
 import android.content.Intent
 import android.graphics.Color
+import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.provider.Settings
 import android.view.View
@@ -23,15 +26,22 @@ abstract class RuntimeActivity : Activity() {
     private var importing=false
 
     protected fun startUi(title: String) {
-        content=LinearLayout(this).apply { orientation=LinearLayout.VERTICAL; setPadding(dp(22),dp(20),dp(22),dp(20)) }
-        val scroll=ScrollView(this).apply { addView(content); setBackgroundColor(Color.rgb(249,248,252)) }
+        content=LinearLayout(this).apply { orientation=LinearLayout.VERTICAL; setPadding(dp(24),dp(28),dp(24),dp(32)) }
+        val scroll=ScrollView(this).apply { addView(content); setBackgroundColor(Color.rgb(245,247,245)) }
         scroll.setOnApplyWindowInsetsListener { v,insets ->
             val safe=insets.getInsets(WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout())
             v.setPadding(safe.left,safe.top,safe.right,safe.bottom)
             insets
         }
         setContentView(scroll)
-        text(title,28)
+        text("M  /  MUSIC WIDGET",12).apply {
+            letterSpacing=0.16f
+            setTextColor(Color.rgb(45,105,87))
+            setTypeface(null,Typeface.BOLD)
+        }
+        text(title,32).setTypeface(null,Typeface.BOLD)
+        text("내 취향을 담은 작은 플레이어",15)
+        text("시작하기",20).setTypeface(null,Typeface.BOLD)
         permission=text("",15)
         button("알림 접근 설정 열기") {
             runCatching { startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) }
@@ -55,7 +65,7 @@ abstract class RuntimeActivity : Activity() {
     override fun onResume() {
         super.onResume()
         if(!::permission.isInitialized) return
-        permission.text=if(Sessions.allowed(this)) "알림 접근 허용됨" else
+        permission.text=if(Sessions.allowed(this)) "연결 준비 완료 · 음악 정보를 읽을 수 있어요" else
             "음악 제목과 재생 제어에 알림 접근이 필요합니다. 설정에서 Music Widget Runtime을 허용하세요."
         refreshOptions()
         MusicWidget.refresh(this)
@@ -86,12 +96,27 @@ abstract class RuntimeActivity : Activity() {
     protected abstract fun refreshOptions(imported: String?=null)
     protected fun dp(n: Int)=(n*resources.displayMetrics.density).toInt()
     protected fun text(label: String,size: Int): TextView = TextView(this).apply {
-        text=label; textSize=size.toFloat(); setTextColor(Color.rgb(35,28,43)); setPadding(0,dp(8),0,dp(8)); content.addView(this)
+        text=label; textSize=size.toFloat(); setTextColor(Color.rgb(27,43,36)); setPadding(0,dp(8),0,dp(8)); content.addView(this)
     }
     protected fun button(label: String,action: (View)->Unit) = Button(this).apply {
-        text=label; isAllCaps=false; setOnClickListener(action); content.addView(this)
+        text=label; styleButton(this); setOnClickListener(action); content.addView(this)
     }
-    protected fun spinner() = Spinner(this).also { content.addView(it) }
+    protected fun styleButton(view: Button) {
+        view.isAllCaps=false
+        view.textSize=16f
+        view.gravity=android.view.Gravity.CENTER_VERTICAL or android.view.Gravity.START
+        view.setPadding(dp(20),dp(14),dp(20),dp(14))
+        view.minHeight=dp(56)
+        view.setTextColor(Color.rgb(245,255,249))
+        view.backgroundTintList=ColorStateList.valueOf(Color.rgb(36,83,65))
+        view.layoutParams=LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(8); bottomMargin=dp(4) }
+    }
+    protected fun spinner() = Spinner(this).also {
+        it.minimumHeight=dp(56)
+        it.setPadding(dp(12),dp(8),dp(12),dp(8))
+        it.background=GradientDrawable().apply { setColor(Color.WHITE); cornerRadius=dp(14).toFloat(); setStroke(dp(1),Color.rgb(215,225,218)) }
+        content.addView(it,LinearLayout.LayoutParams(-1,-2).apply { bottomMargin=dp(12) })
+    }
     protected fun bind(spinner: Spinner,labels: List<String>,selected: Int) {
         spinner.adapter=ArrayAdapter(this,android.R.layout.simple_spinner_dropdown_item,labels)
         if(labels.isNotEmpty()) spinner.setSelection(selected.coerceIn(0,labels.lastIndex))
@@ -106,9 +131,9 @@ class MainActivity : RuntimeActivity() {
     private lateinit var widgets: LinearLayout
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        startUi("Music Widget Runtime")
+        startUi("나만의 음악 공간")
         text("홈 화면을 길게 누르고 위젯 목록에서 Music Widget Runtime을 추가하세요.",16)
-        text("홈 화면 위젯",20)
+        text("내 위젯",22).setTypeface(null,Typeface.BOLD)
         widgets=LinearLayout(this).apply { orientation=LinearLayout.VERTICAL; content.addView(this) }
     }
 
@@ -116,12 +141,12 @@ class MainActivity : RuntimeActivity() {
         if(!::widgets.isInitialized) return
         widgets.removeAllViews()
         val ids=MusicWidget.ids(this)
-        if(ids.isEmpty()) widgets.addView(TextView(this).apply { text="추가된 위젯이 없습니다" })
+        if(ids.isEmpty()) widgets.addView(TextView(this).apply { text="아직 위젯이 없어요\n홈 화면에 첫 위젯을 추가해 보세요."; textSize=16f; setPadding(dp(16),dp(20),dp(16),dp(20)); setTextColor(Color.rgb(83,97,90)) })
         ids.forEach { id ->
             val theme=ThemeStore.prefs(this).getString("widget.$id.theme","nocturne")!!
             val name=runCatching { ThemeStore.get(this,theme).json.getString("name") }.getOrDefault(theme)
             widgets.addView(Button(this).apply {
-                text="위젯 $id · $name"; isAllCaps=false
+                text="$name  ·  설정 열기"; styleButton(this)
                 setOnClickListener { startActivity(Intent(this@MainActivity,ConfigureActivity::class.java).putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,id)) }
             })
         }

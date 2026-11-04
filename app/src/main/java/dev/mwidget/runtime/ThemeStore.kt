@@ -26,7 +26,7 @@ object ThemeStore {
     private const val MAX_FILE = 8 * 1024 * 1024
     private const val MAX_TOTAL = 24 * 1024 * 1024
     private val path = Regex("[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*")
-    val actions = setOf("previous", "toggle", "next", "switch", "settings")
+    val actions = setOf("previous", "toggle", "next", "switch", "settings", "rewind", "forward", "stop")
     fun prefs(c: Context) = c.getSharedPreferences("runtime", Context.MODE_PRIVATE)
     private fun root(c: Context) = File(c.filesDir,"themes").apply { mkdirs() }
     fun safeName(s: String) = s.length <= 160 && path.matches(s) && s.split('/').none { it == "." || it == ".." }
@@ -145,10 +145,15 @@ object ThemeStore {
         for(i in 0 until layers.length()) {
             val l=layers.getJSONObject(i); bounds(l)
             val fields=when(string(l,"type")) {
+                "progress" -> {
+                    for (key in listOf("color","trackColor"))
+                        require(Regex("#[0-9a-fA-F]{6}").matches(string(l,key)))
+                    setOf("color","trackColor")
+                }
                 "image" -> setOf("src")
                 "artwork" -> setOf("fallback")
                 "text" -> {
-                    require(string(l,"field") in setOf("title","artist","album","player","status"))
+                    require(string(l,"field") in setOf("title","artist","album","player","status","elapsed","duration"))
                     number(l,"size",6.0,160.0)
                     require(Regex("#[0-9a-fA-F]{6}").matches(string(l,"color")))
                     setOf("field","size","color","font")
@@ -162,7 +167,7 @@ object ThemeStore {
                 require(File(dir,p).isFile) { "에셋 누락: $p" }; used.add(p)
             }
         }
-        val touch=m.getJSONArray("touch"); require(touch.length() in 1..8)
+        val touch=m.getJSONArray("touch"); require(touch.length() in 0..8)
         for(i in 0 until touch.length()) {
             val a=touch.getJSONObject(i); keys(a,rect+setOf("action","label")); bounds(a)
             require(string(a,"action") in actions && string(a,"label").length in 1..80)

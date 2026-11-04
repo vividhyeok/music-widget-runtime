@@ -68,7 +68,7 @@ class MusicWidget : AppWidgetProvider() {
                 val next=choices[(choices.indexOf(current)+1)%choices.size]
                 prefs.edit().putString("widget.$id.player",next).apply()
                 if(sessions.isEmpty()) "전환할 활성 플레이어가 없습니다" else null
-            } else if(action in setOf("previous","toggle","next")) {
+            } else if(action in setOf("previous","toggle","next","rewind","forward","stop")) {
                 val displayed=intent.getStringExtra("player")
                 val controller=Sessions.pick(sessions,current)
                 when {
@@ -94,12 +94,17 @@ class MusicWidget : AppWidgetProvider() {
                 val sizes=options.getParcelableArrayList<SizeF>(AppWidgetManager.OPTION_APPWIDGET_SIZES).orEmpty()
                     .filter { it.width.isFinite() && it.height.isFinite() && it.width > 0 && it.height > 0 }.distinct()
                 val player=controller?.packageName
+                val openPlayer=controller?.sessionActivity ?: (player ?: selected)?.let { pkg ->
+                    c.packageManager.getLaunchIntentForPackage(pkg)?.let { launch ->
+                        PendingIntent.getActivity(c,id,launch,PendingIntent.FLAG_IMMUTABLE)
+                    }
+                }
                 val views=if(sizes.size in 1..3) RemoteViews(sizes.associateWith { size ->
-                    render(c,id,theme,song,player,size,message)
+                    render(c,id,theme,song,player,size,message,openPlayer)
                 }) else {
                     val w=options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH,280).coerceAtLeast(1)
                     val h=options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT,140).coerceAtLeast(1)
-                    render(c,id,theme,song,player,SizeF(w.toFloat(),h.toFloat()),message)
+                    render(c,id,theme,song,player,SizeF(w.toFloat(),h.toFloat()),message,openPlayer)
                 }
                 manager.updateAppWidget(id,views)
             } catch(e: Exception) {
@@ -113,7 +118,7 @@ class MusicWidget : AppWidgetProvider() {
             }
         }
 
-        internal fun render(c: Context,id: Int,theme: Theme,song: Song,player: String?,size: SizeF,message: String?): RemoteViews {
+        internal fun render(c: Context,id: Int,theme: Theme,song: Song,player: String?,size: SizeF,message: String?,openPlayer: PendingIntent?=null): RemoteViews {
             val density=c.resources.displayMetrics.density
             val scale=minOf(density, 1080f/maxOf(size.width,size.height), sqrt(400000f/size.width/size.height))
             val w=(size.width*scale).roundToInt().coerceAtLeast(1)
@@ -122,7 +127,9 @@ class MusicWidget : AppWidgetProvider() {
             return RemoteViews(c.packageName,R.layout.widget).apply {
                 setImageViewBitmap(R.id.canvas,Renderer.render(theme,song,w,h))
                 setContentDescription(R.id.canvas,"${song.title}, ${song.artist}, ${song.status}")
-                setOnClickPendingIntent(R.id.canvas,settings(c,id))
+                setOnClickPendingIntent(R.id.canvas,openPlayer)
+                removeAllViews(R.id.hits)
+                setViewVisibility(R.id.error,if(message==null) View.GONE else View.VISIBLE)
                 val touch=theme.json.getJSONArray("touch")
                 for (i in 0 until touch.length()) {
                     val hit=touch.getJSONObject(i)
@@ -143,7 +150,6 @@ class MusicWidget : AppWidgetProvider() {
                     })
                 }
                 if(message!=null) {
-                    setViewVisibility(R.id.error,View.VISIBLE)
                     setTextViewText(R.id.error,message)
                     setOnClickPendingIntent(R.id.error,settings(c,id))
                 }

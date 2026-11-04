@@ -1,47 +1,82 @@
 # Music Widget Runtime
 
-Android 12(API 31) 이상에서 MediaSession 정보를 홈 화면 위젯에 표시하는 Kotlin 앱입니다. PC에서 만든 `.mwidget` 패키지를 Android 파일 선택기로 가져온 뒤 각 위젯에 적용합니다.
+원하는 디자인을 AI로 만들고 Android 홈 화면에서 사용하는 음악 위젯입니다.
+Android 12 이상에서 음악 앱의 MediaSession을 통해 곡 정보와 재생 제어를 연결합니다.
 
-## Galaxy S22에서 사용하기
+![Nocturne 미리보기](dist/nocturne.png)
 
-1. `dist/MusicWidgetRuntime-debug.apk`를 설치하고 앱을 한 번 엽니다. 이 APK는 개인 설치용 디버그 빌드입니다.
-2. 앱의 **알림 접근 설정 열기**를 눌러 Music Widget Runtime을 허용합니다. 권한 선택이 제한되면 설정의 앱 정보에서 **제한된 설정 허용** 항목이 제공되는지 확인합니다. 메뉴 표시는 Android와 One UI 버전에 따라 다릅니다.
-3. YouTube Music에서 곡을 재생합니다. 홈 화면을 길게 누르고 위젯 목록에서 **Music Widget Runtime**을 추가합니다. 처음에는 **Nocturne**을 선택합니다.
-4. `dist/tape-deck.mwidget`을 휴대전화에 복사합니다. 앱의 **.mwidget 가져오기**에서 파일을 선택하고 두 번째 위젯을 추가해 **Tape Deck**을 적용합니다. 위젯의 `⋮` 또는 위젯 본문을 눌러 나중에 다시 선택할 수 있습니다.
-5. 두 위젯의 제목·아티스트·앨범아트를 확인합니다. 이전·재생/일시 정지·다음 버튼을 개별로 누릅니다. 다른 MediaSession 플레이어도 활성화하고 전환 버튼과 위젯별 플레이어 선택을 확인합니다. 플레이어가 제공하는 세션과 동작만 사용할 수 있습니다.
-6. 앱을 닫고 다음 곡을 재생합니다. 이어서 기기를 재부팅하고 잠금 해제한 뒤 음악을 재생하여 위젯 설정 복구와 표시·제어를 확인합니다.
+## 처음 사용하는 분
 
-자동 모드는 재생 중인 세션을 우선합니다. 고정 모드는 해당 플레이어가 잠시 사라져도 선택을 유지합니다. 전환 버튼은 현재 활성 플레이어와 자동 모드를 순환합니다. 알림 리스너는 알림 내용을 읽거나 저장하지 않으며, 활성 MediaSession을 조회하는 데 사용합니다.
+1. 아래 빌드 안내로 APK를 만들고 휴대폰에 설치합니다. 이 저장소에는 APK 바이너리가 포함되어 있지 않습니다.
+2. 앱에서 **알림 접근 설정 열기**를 누르고 Music Widget Runtime을 허용합니다.
+3. Spotify나 YouTube Music 등에서 음악을 재생합니다.
+4. 홈 화면의 위젯 목록에서 Music Widget Runtime을 추가하고 테마와 플레이어를 선택합니다.
+5. 다른 디자인은 [Tape Deck 테마](dist/tape-deck.mwidget)를 다운로드해 앱의 **.mwidget 가져오기**로 추가합니다.
 
-## PC에서 테마 만들기
+알림 접근 메뉴와 위젯 크기 조절 범위는 기기마다 다릅니다. 위젯 본문을 누르면 선택된 음악 앱을 엽니다. 위젯 설정은 앱의 **내 위젯**에서 엽니다.
 
-예시 요청은 “새벽 서울의 네온과 산 능선, 큰 민트색 재생 버튼” 및 “베이지 종이 질감의 빈티지 카세트, 갈색 헤더, 왼쪽 곡 정보와 오른쪽 앨범아트”입니다. 생성된 소스는 `themes/nocturne`과 `themes/tape-deck`에 있습니다. 테마마다 배경과 앨범아트 대체 PNG, 버튼 PNG, 글꼴과 라이선스를 포함합니다.
+## AI에게 내 디자인 만들게 하기
+
+[제작 키트 ZIP](dist/music-widget-ai-kit.zip)을 다운로드해 ZIP 읽기와 Python 실행을 지원하는 AI에 첨부합니다. 원하는 스타일이나 레퍼런스 이미지를 함께 전달하면 됩니다.
+
+> 이 레퍼런스를 바탕으로 미니멀한 음악 위젯을 만들어줘. 곡 제목과 재생 버튼만 넣고 배경은 투명하게 해줘.
+
+키트에는 프로젝트 설명, 제작 스킬, 규격, 예제 두 개, 검증 및 PNG 미리보기 도구가 들어 있습니다.
+AI가 반환한 .mwidget을 휴대폰 앱에서 가져와 적용합니다. 같은 테마 ID를 가져오면 기존 테마가 교체됩니다.
+
+APK는 테마 실행을 담당하고 .mwidget은 디자인과 선택한 기능을 담습니다. 테마 제작에 Android 빌드는 필요 없습니다.
+
+## 지원 범위
+
+- 곡 제목, 아티스트, 앨범, 앨범아트, 플레이어, 재생 상태
+- 선택적 진행 막대, 경과 시간과 전체 길이
+- 재생/일시정지, 이전/다음 곡, 플레이어 전환, 10초 앞뒤 이동, 정지
+- 위젯별 테마와 플레이어 선택, 투명 배경, 가로·세로 크기 조절
+
+기능은 테마마다 선택합니다. 정보만 표시하는 테마도 만들 수 있습니다.
+음악 앱이 제공하는 동작만 실행됩니다. 진행 표시는 재생 중 약 5초 간격으로 갱신합니다.
+크기 조절 시 원본 비율을 유지해 확대·축소하며 요소를 재배치하지는 않습니다.
+상세 규격은 [런타임 설명](.agents/skills/music-widget-designer/references/runtime.md)에 있습니다.
+
+## 직접 빌드하기
+
+JDK 17 이상, Android SDK Platform 35, Python 3.10 이상이 필요합니다.
+JAVA_HOME은 JDK 폴더로, ANDROID_HOME은 Android SDK 폴더로 설정합니다.
+
+Windows PowerShell에서 실행합니다.
 
 ```powershell
-python -m pip install Pillow jsonschema
-$scripts = '.agents/skills/music-widget-designer/scripts'
-python "$scripts/pack.py" themes/tape-deck dist/tape-deck.mwidget
-python "$scripts/validate.py" dist/tape-deck.mwidget
-python "$scripts/preview.py" dist/tape-deck.mwidget dist/tape-deck.png --title '서울의 밤' --paused
+./gradlew.bat assembleDebug testDebugUnitTest lintDebug
+python -m pip install -r requirements.txt
 python tools/test_packages.py
+python tools/build_ai_kit.py
 ```
 
-제작 규칙은 `.agents/skills/music-widget-designer/SKILL.md`에서, JSON 구조는 `references/schema.json`에서 확인할 수 있습니다. 동일한 `id`의 테마를 가져오면 해당 ID를 사용하는 위젯이 새 디자인을 표시합니다. 원본과 별개로 선택하려면 새 ID를 사용합니다.
+macOS/Linux에서는 Gradle 명령을 `bash ./gradlew assembleDebug testDebugUnitTest lintDebug`로 실행합니다.
+생성된 APK는 `app/build/outputs/apk/debug/app-debug.apk`입니다.
+ADB가 연결되어 있다면 `adb install -r app/build/outputs/apk/debug/app-debug.apk`로 설치할 수 있습니다.
+디버그 서명은 빌드 PC마다 다를 수 있으므로 기존 설치와 서명이 다르면 업데이트 설치가 거부됩니다.
 
-`.mwidget`은 루트의 `manifest.json`과 참조된 에셋, 선택적 `LICENSE.txt`로 구성됩니다. v1은 이미지·앨범아트·텍스트·상태 전환 아이콘을 배열 순서로 합성합니다. 독립된 버튼 사각형은 이전·재생/일시 정지·다음·세션 전환·설정 중 하나에 연결됩니다. 앱은 경로 정규화, 중복 경로, 스트리밍 크기·압축비, CRC, 이미지 해상도와 총 픽셀, 글꼴 및 스키마를 가져오기 전에 확인합니다. 설치된 패키지와 위젯 설정은 앱 내부에 저장합니다.
+## 저장소 구성
 
-## 빌드와 자동 검증
+| 경로 | 용도 |
+| --- | --- |
+| app/ | Android 실행기와 인앱 UI |
+| themes/ | 수정 가능한 예제 테마와 에셋·라이선스 |
+| dist/ | 가져오기용 테마, 미리보기, AI 제작 ZIP |
+| .agents/skills/music-widget-designer/ | 제작 스킬, 규격, 패키징·검증·미리보기 |
+| tools/ | 빌드 보조, 키트 생성, 테스트 |
+| docs/ | AI 시작 문서, 원본 프로젝트와 라이선스 정보 |
 
-JDK 17 이상과 Android SDK Platform 35가 필요합니다. Windows PowerShell에서 SDK/JDK 경로를 실제 설치 경로로 지정한 뒤 실행합니다.
+[AI 제작 절차](docs/ai-kit-start.md)의 예제 명령은 키트 ZIP을 푼 디렉터리 기준입니다.
+저장소에서는 스크립트가 .agents/skills/music-widget-designer/scripts에 있습니다.
 
-```powershell
-$env:JAVA_HOME = 'C:/Program Files/Android/Android Studio/jbr'
-$env:ANDROID_HOME = "$env:LOCALAPPDATA/Android/Sdk"
-./gradlew.bat :app:assembleDebug :app:assembleDebugAndroidTest
-./gradlew.bat :app:testDebugUnitTest :app:lintDebug
-./tools/verify-emulator.ps1 -Serial emulator-5554
-```
+## 검증과 개인정보
 
-`verify-emulator.ps1`은 테스트용 AVD에 디버그 APK와 테스트 APK를 설치하고, 알림 접근과 테스트 호스트의 위젯 바인딩을 허용합니다. 테스트는 실제 Android AppWidgetHost와 테스트 MediaSession을 사용합니다. S22 수동 검증은 위의 사용 순서를 따릅니다.
+자동 테스트는 패키지 검증과 Android 렌더링·버튼 구성을 확인합니다.
+Galaxy S22에 무선 ADB 업데이트 설치를 확인했으며 모든 음악 앱과 런처에서의 동작을 보장하지는 않습니다.
+알림 리스너는 활성 MediaSession 조회에 사용하며 알림 내용을 저장하지 않습니다.
+테마와 위젯 설정은 앱 내부에 저장됩니다.
 
-원본 조사와 재사용 범위는 `docs/upstream.md`, 원본 MIT 고지는 `docs/UPSTREAM-LICENSE.txt`를 참고하세요.
+원본 참고 범위는 [upstream 설명](docs/upstream.md), 관련 고지는 [라이선스](docs/UPSTREAM-LICENSE.txt)에 있습니다.
+예제 에셋과 폰트의 조건은 각 themes 디렉터리의 LICENSE.txt를 확인하세요.

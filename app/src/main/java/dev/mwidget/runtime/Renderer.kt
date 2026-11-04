@@ -6,7 +6,7 @@ import android.text.TextUtils
 import java.io.File
 import kotlin.math.min
 
-data class Song(val title: String="음악을 재생하세요", val artist: String="플레이어의 활성 세션을 기다리는 중", val album: String="", val player: String="", val status: String="대기 중", val playing: Boolean=false, val art: Bitmap?=null)
+data class Song(val title: String="음악을 재생하세요", val artist: String="플레이어의 활성 세션을 기다리는 중", val album: String="", val player: String="", val status: String="대기 중", val playing: Boolean=false, val art: Bitmap?=null, val position: Long=0, val duration: Long=0)
 
 data class Geometry(val scale: Float, val left: Float, val top: Float) {
     companion object {
@@ -18,6 +18,8 @@ data class Geometry(val scale: Float, val left: Float, val top: Float) {
 }
 
 object Renderer {
+    private fun time(value: Long): String = "%d:%02d".format(java.util.Locale.ROOT,value/60000,value/1000%60)
+
     fun render(theme: Theme,song: Song,width: Int,height: Int): Bitmap {
         require(width in 1..1440 && height in 1..1440 && width.toLong()*height<=1048576)
         val bitmap=Bitmap.createBitmap(width,height,Bitmap.Config.ARGB_8888)
@@ -31,8 +33,16 @@ object Renderer {
             val x=l.getDouble("x").toFloat(); val y=l.getDouble("y").toFloat()
             val w=l.getDouble("w").toFloat(); val h=l.getDouble("h").toFloat()
             val target=RectF(x,y,x+w,y+h)
-            if(l.getString("type")=="text") {
-                val text=when(l.getString("field")) { "title"->song.title; "artist"->song.artist; "album"->song.album; "player"->song.player; else->song.status }.take(2048)
+            if(l.getString("type")=="progress") {
+                paint.color=Color.parseColor(l.getString("trackColor"))
+                canvas.drawRoundRect(target,h/2,h/2,paint)
+                if(song.duration>0) {
+                    paint.color=Color.parseColor(l.getString("color"))
+                    val fraction=(song.position.toDouble()/song.duration).coerceIn(0.0,1.0).toFloat()
+                    canvas.drawRoundRect(RectF(x,y,x+w*fraction,y+h),h/2,h/2,paint)
+                }
+            } else if(l.getString("type")=="text") {
+                val text=when(l.getString("field")) { "elapsed"->if(song.duration>0) time(song.position) else "—"; "duration"->if(song.duration>0) time(song.duration) else "—"; "title"->song.title; "artist"->song.artist; "album"->song.album; "player"->song.player; else->song.status }.take(2048)
                 val p=TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
                     color=Color.parseColor(l.getString("color")); textSize=l.getDouble("size").toFloat()
                     typeface=fonts.getOrPut(l.getString("font")) { Typeface.createFromFile(File(theme.dir,l.getString("font"))) }

@@ -110,6 +110,37 @@
       "w": 49,
       "h": 49,
       "src": "assets/settings.png"
+    },
+    {
+      "type": "progress",
+      "x": 44,
+      "y": 348,
+      "w": 632,
+      "h": 4,
+      "color": "#a4e9d8",
+      "trackColor": "#555566"
+    },
+    {
+      "type": "text",
+      "field": "elapsed",
+      "x": 44,
+      "y": 326,
+      "w": 66,
+      "h": 20,
+      "size": 16,
+      "color": "#a6a4ce",
+      "font": "assets/type.ttf"
+    },
+    {
+      "type": "text",
+      "field": "duration",
+      "x": 610,
+      "y": 326,
+      "w": 66,
+      "h": 20,
+      "size": 16,
+      "color": "#a6a4ce",
+      "font": "assets/type.ttf"
     }
   ],
   "touch": [
