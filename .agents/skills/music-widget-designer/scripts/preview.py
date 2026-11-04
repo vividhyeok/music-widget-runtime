@@ -30,8 +30,17 @@ def preview(package,output,title='Midnight in Seoul',artist='Luna Park',playing=
     for l in m['layers']:
         x,y,w,h=[int(l[k]) for k in ('x','y','w','h')]
         if l['type']=='progress':
-            d.rounded_rectangle((x,y,x+w,y+h),radius=h/2,fill=l['trackColor'])
-            d.rounded_rectangle((x,y,x+w*84/222,y+h),radius=h/2,fill=l['color'])
+            radius=l.get('radius',h/2)
+            def asset(key, size):
+                return Image.open(io.BytesIO(files[l[key]])).convert('RGBA').resize(size,Image.Resampling.LANCZOS)
+            if 'trackSrc' in l: im.alpha_composite(asset('trackSrc',(w,h)),(x,y))
+            else: d.rounded_rectangle((x,y,x+w,y+h),radius=radius,fill=l['trackColor'])
+            if l.get('showFill',True):
+                if 'fillSrc' in l: im.alpha_composite(asset('fillSrc',(w,h)).crop((0,0,int(w*84/222),h)),(x,y))
+                else: d.rounded_rectangle((x,y,x+w*84/222,y+h),radius=radius,fill=l['color'])
+            if 'thumbSrc' in l:
+                tw=max(1,int(l['thumbWidth']))
+                im.alpha_composite(asset('thumbSrc',(tw,h)),(x+int((w-tw)*84/222),y))
         elif l['type']=='text':
             font=ImageFont.truetype(io.BytesIO(files[l['font']]),int(l['size']))
             fallback=system_fallback(int(l['size']),fallback_font)

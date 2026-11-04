@@ -42,7 +42,10 @@ def validate_bytes(raw):
     Draft202012Validator(json.loads(SCHEMA.read_text(encoding='utf-8'))).validate(m)
     used={'manifest.json'}; pixels=0
     for l in m['layers']:
-        for key in ('src','playingSrc','fallback','font'):
+        if l['type']=='progress':
+            if ('thumbSrc' in l)!=('thumbWidth' in l): raise ValueError('Thumb image and width required together')
+            if l.get('thumbWidth',0)>l['w']: raise ValueError('Thumb exceeds track')
+        for key in ('src','playingSrc','fallback','font','trackSrc','fillSrc','thumbSrc'):
             if key in l:
                 p=l[key]; used.add(p)
                 if not safe_name(p) or p not in files: raise ValueError('Missing asset: '+p)

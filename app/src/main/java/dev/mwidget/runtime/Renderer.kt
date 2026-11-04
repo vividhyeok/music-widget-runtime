@@ -34,12 +34,30 @@ object Renderer {
             val w=l.getDouble("w").toFloat(); val h=l.getDouble("h").toFloat()
             val target=RectF(x,y,x+w,y+h)
             if(l.getString("type")=="progress") {
-                paint.color=Color.parseColor(l.getString("trackColor"))
-                canvas.drawRoundRect(target,h/2,h/2,paint)
-                if(song.duration>0) {
+                val fraction=if(song.duration>0) (song.position.toDouble()/song.duration).coerceIn(0.0,1.0).toFloat() else 0f
+                val radius=l.optDouble("radius",(h/2).toDouble()).toFloat()
+                fun asset(key: String,rect: RectF) {
+                    val image=requireNotNull(BitmapFactory.decodeFile(File(theme.dir,l.getString(key)).path))
+                    canvas.drawBitmap(image,null,rect,paint)
+                    image.recycle()
+                }
+                if(l.has("trackSrc")) asset("trackSrc",target) else {
+                    paint.color=Color.parseColor(l.getString("trackColor"))
+                    canvas.drawRoundRect(target,radius,radius,paint)
+                }
+                if(song.duration>0 && l.optBoolean("showFill",true)) {
                     paint.color=Color.parseColor(l.getString("color"))
-                    val fraction=(song.position.toDouble()/song.duration).coerceIn(0.0,1.0).toFloat()
-                    canvas.drawRoundRect(RectF(x,y,x+w*fraction,y+h),h/2,h/2,paint)
+                    if(l.has("fillSrc")) {
+                        canvas.save()
+                        canvas.clipRect(x,y,x+w*fraction,y+h)
+                        asset("fillSrc",target)
+                        canvas.restore()
+                    } else canvas.drawRoundRect(RectF(x,y,x+w*fraction,y+h),radius,radius,paint)
+                }
+                if(l.has("thumbSrc") && song.duration>0) {
+                    val tw=l.getDouble("thumbWidth").toFloat()
+                    val left=x+(w-tw)*fraction
+                    asset("thumbSrc",RectF(left,y,left+tw,y+h))
                 }
             } else if(l.getString("type")=="text") {
                 val text=when(l.getString("field")) { "elapsed"->if(song.duration>0) time(song.position) else "—"; "duration"->if(song.duration>0) time(song.duration) else "—"; "title"->song.title; "artist"->song.artist; "album"->song.album; "player"->song.player; else->song.status }.take(2048)

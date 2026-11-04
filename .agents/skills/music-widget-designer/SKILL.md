@@ -36,3 +36,5 @@ description: 자연어 요청으로 Music Widget Runtime의 PNG·폰트·레이�
 Python 3와 Pillow, jsonschema를 설치한다. 작업 디렉터리의 SKILL.md를 읽고 scripts/pack.py, scripts/validate.py, scripts/preview.py를 사용한다.
 APK는 패키지 실행기이며 테마 제작에는 Android 빌드가 필요 없다.
 결과물은 .mwidget, 미리보기 PNG, 사용한 에셋의 라이선스다. 코드 실행이 불가능한 환경에서는 검증·패키징 완료를 주장하지 않는다.
+
+진행 막대 레퍼런스에 손잡이 또는 질감이 있으면 references/runtime.md의 커스텀 진행 슬라이더 옵션을 사용한다. 평면 채움 막대로 임의 대체하지 않는다.

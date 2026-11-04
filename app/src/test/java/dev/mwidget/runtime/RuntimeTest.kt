@@ -34,6 +34,25 @@ class RuntimeTest {
     private val context: Application get() = RuntimeEnvironment.getApplication()
     private val tape get() = File(System.getProperty("mwidget.samples"),"tape-deck.mwidget")
 
+    @Test fun customProgressThumbMovesAndStaysInsideTrack() {
+        ThemeStore.ensureDefault(context)
+        val source=ThemeStore.get(context,"nocturne")
+        val json=org.json.JSONObject(source.json.toString())
+        json.put("layers",org.json.JSONArray().put(org.json.JSONObject("""
+            {"type":"progress","x":40,"y":40,"w":300,"h":40,
+             "color":"#ffffff","trackColor":"#000000","showFill":false,
+             "thumbSrc":"assets/play.png","thumbWidth":40,"radius":0}
+        """)))
+        val theme=Theme(source.dir,json)
+        val start=Renderer.render(theme,Song(position=0,duration=100),720,360)
+        val end=Renderer.render(theme,Song(position=100,duration=100),720,360)
+        assertFalse(start.sameAs(end))
+        assertEquals(Color.BLACK,end.getPixel(60,60))
+        assertEquals(Color.BLACK,start.getPixel(320,60))
+        assertEquals(Color.TRANSPARENT,end.getPixel(341,60))
+        assertTrue(end.sameAs(Renderer.render(theme,Song(position=200,duration=100),720,360)))
+    }
+
     @Test fun packagedThemesRenderWithIndependentButtons() {
         ThemeStore.ensureDefault(context)
         val first=ThemeStore.get(context,"nocturne")

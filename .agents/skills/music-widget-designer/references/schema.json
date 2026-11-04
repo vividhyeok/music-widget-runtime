@@ -64,6 +64,34 @@
               "trackColor": {
                 "type": "string",
                 "pattern": "^#[0-9A-Fa-f]{6}$"
+              },
+              "trackSrc": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+                "maxLength": 160
+              },
+              "fillSrc": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+                "maxLength": 160
+              },
+              "thumbSrc": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+                "maxLength": 160
+              },
+              "thumbWidth": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 1024
+              },
+              "radius": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1024
+              },
+              "showFill": {
+                "type": "boolean"
               }
             },
             "required": [

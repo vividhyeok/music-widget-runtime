@@ -148,6 +148,10 @@ object ThemeStore {
                 "progress" -> {
                     for (key in listOf("color","trackColor"))
                         require(Regex("#[0-9a-fA-F]{6}").matches(string(l,key)))
+                    if(l.has("radius")) number(l,"radius",0.0,1024.0)
+                    if(l.has("showFill")) require(l.get("showFill") is Boolean)
+                    require(l.has("thumbSrc")==l.has("thumbWidth"))
+                    if(l.has("thumbWidth")) number(l,"thumbWidth",0.001,l.getDouble("w"))
                     setOf("color","trackColor")
                 }
                 "image" -> setOf("src")
@@ -161,8 +165,8 @@ object ThemeStore {
                 "icon" -> { require(string(l,"action") in actions); setOf("action","src") }
                 else -> error("지원하지 않는 레이어")
             }
-            keys(l,rect+fields+"type",if(l.getString("type")=="icon") setOf("playingSrc") else emptySet())
-            for(k in listOf("src","fallback","font","playingSrc")) if(l.has(k)) {
+            keys(l,rect+fields+"type",when(l.getString("type")) { "icon" -> setOf("playingSrc"); "progress" -> setOf("trackSrc","fillSrc","thumbSrc","thumbWidth","radius","showFill"); else -> emptySet() })
+            for(k in listOf("src","fallback","font","playingSrc","trackSrc","fillSrc","thumbSrc")) if(l.has(k)) {
                 val p=string(l,k); require(safeName(p)); require(p.endsWith(if(k=="font") ".ttf" else ".png") || k=="font" && p.endsWith(".otf"))
                 require(File(dir,p).isFile) { "에셋 누락: $p" }; used.add(p)
             }

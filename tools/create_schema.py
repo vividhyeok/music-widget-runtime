@@ -12,7 +12,7 @@ variants=[]
 def layer(kind, props, optional=()):
     p={"type":{"const":kind},**rect,**props}
     variants.append(obj(p,[k for k in p if k not in optional]))
-layer("progress", {"color":color,"trackColor":color})
+layer("progress", {"color":color,"trackColor":color,"trackSrc":path,"fillSrc":path,"thumbSrc":path,"thumbWidth":rect["w"],"radius":num,"showFill":{"type":"boolean"}},("trackSrc","fillSrc","thumbSrc","thumbWidth","radius","showFill"))
 layer("image", {"src":path})
 layer("artwork", {"fallback":path})
 layer("text", {"field":{"enum":["title","artist","album","player","status","elapsed","duration"]},"size":{"type":"number","minimum":6,"maximum":160},"color":color,"font":path})
