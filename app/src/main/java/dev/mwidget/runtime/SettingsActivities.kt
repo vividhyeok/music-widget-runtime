@@ -49,7 +49,9 @@ abstract class RuntimeActivity: Activity() {
         label(content,title,30).setTypeface(null,Typeface.BOLD)
         label(content,subtitle,15)
         permission=label(content,"연결 상태 확인 중…",14)
-        button(content,"음악 연결 설정",false) {
+        permission.minHeight=dp(48)
+        permission.contentDescription="음악 연결 상태 · 눌러서 알림 접근 설정 열기"
+        permission.setOnClickListener {
             runCatching { startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) }.onFailure { status.text="설정 앱에서 알림 접근 메뉴를 열어 주세요." }
         }
         importButton=button(content,"+ 테마 가져오기",true) {
@@ -63,7 +65,7 @@ abstract class RuntimeActivity: Activity() {
     override fun onResume() {
         super.onResume()
         if(!::permission.isInitialized) return
-        permission.text=if(Sessions.allowed(this)) "● 음악 연결 준비 완료" else "음악 정보를 표시하려면 알림 접근을 허용해 주세요."
+        permission.text=if(Sessions.allowed(this)) "● 음악 연결됨 · 설정 ›" else "○ 음악 연결 필요 · 눌러서 설정 ›"
         refreshOptions(); MusicWidget.refresh(this)
     }
     override fun onSaveInstanceState(out: Bundle) { out.putLong("seenImport",seenImport); if(::scroll.isInitialized) out.putInt("scrollY",scroll.scrollY); super.onSaveInstanceState(out) }
@@ -118,10 +120,29 @@ abstract class RuntimeActivity: Activity() {
     }
     protected fun preview(parent: LinearLayout,theme: Theme): ThemePreview {
         val image=ThemePreview(this); parent.addView(image,LinearLayout.LayoutParams(-1,-2))
-        val message=label(parent,"",13)
-        image.show(theme) { error -> message.text=error ?: "샘플 곡으로 표시 · 실제 위젯에는 현재 음악이 표시돼요" }
-        button(parent,"미리보기 다시 불러오기") { image.show(theme) { error -> message.text=error ?: "샘플 곡으로 표시" } }
+        val row=LinearLayout(this).apply { orientation=LinearLayout.HORIZONTAL; gravity=android.view.Gravity.CENTER_VERTICAL; parent.addView(this) }
+        val message=label(row,"",13).apply { layoutParams=LinearLayout.LayoutParams(0,-2,1f) }
+        lateinit var retry: ImageButton
+        fun show() { image.show(theme) { error ->
+            row.visibility=if(error==null) View.GONE else View.VISIBLE
+            message.text=if(image.failed) "미리보기를 불러오지 못했어요" else "미리보기 준비 중…"
+            retry.visibility=if(image.failed) View.VISIBLE else View.GONE
+        } }
+        retry=icon(row,"미리보기 다시 불러오기",R.drawable.ic_refresh) { show() }
+        show()
         return image
+    }
+    protected fun icon(parent: LinearLayout,label: String,resource: Int,action: (View)->Unit)=ImageButton(this).apply {
+        contentDescription=label; setImageResource(resource); imageTintList=ColorStateList.valueOf(Color.rgb(37,83,61)); setPadding(dp(12),dp(12),dp(12),dp(12))
+        val attrs=obtainStyledAttributes(intArrayOf(android.R.attr.selectableItemBackgroundBorderless)); background=attrs.getDrawable(0); attrs.recycle()
+        setOnClickListener(action); parent.addView(this,LinearLayout.LayoutParams(dp(48),dp(48)))
+    }
+    protected fun restoreDefault() {
+        val app=applicationContext
+        MusicWidget.worker.execute {
+            val result=runCatching { ThemeStore.restoreDefault(app) }
+            runOnUiThread { if(!isFinishing && !isDestroyed) { result.onFailure { status.text="기본 테마를 복원하지 못했어요" }; refreshOptions() } }
+        }
     }
     companion object {
         private const val IMPORT=42
@@ -136,6 +157,7 @@ class MainActivity: RuntimeActivity() {
     private lateinit var galleryStatus: TextView
     private var themes=emptyList<Theme>()
     private var page=0
+    private var deleting=false
     override fun onCreate(state: Bundle?) {
         super.onCreate(state); restoreUi(state); page=state?.getInt("page") ?: 0
         startUi("내 음악, 내 디자인","테마를 미리 보고 홈 화면에 적용하세요.")
@@ -143,6 +165,7 @@ class MainActivity: RuntimeActivity() {
         widgets=LinearLayout(this).apply { orientation=LinearLayout.VERTICAL; content.addView(this) }
         label(content,"보관한 테마",21).setTypeface(null,Typeface.BOLD)
         galleryStatus=label(content,"테마를 불러오고 있어요…",14)
+        label(content,"샘플 곡으로 표시해요. ＋로 추가하고 ⋮에서 적용·삭제할 수 있어요.",13)
         gallery=LinearLayout(this).apply { orientation=LinearLayout.VERTICAL; content.addView(this) }
         button(content,"목록 새로고침") { refreshOptions() }
         val settings=card(content)
@@ -170,33 +193,95 @@ class MainActivity: RuntimeActivity() {
         ids.forEach { id ->
             val selected=ThemeStore.prefs(this).getString("widget.$id.theme","nocturne")
             val name=themes.firstOrNull { it.id==selected }?.json?.getString("name") ?: "테마 확인 필요"
-            button(widgets,"$name · 설정") { configure(id) }
+            val row=LinearLayout(this).apply { orientation=LinearLayout.HORIZONTAL; gravity=android.view.Gravity.CENTER_VERTICAL; widgets.addView(this) }
+            label(row,name,16).apply { maxLines=1; ellipsize=android.text.TextUtils.TruncateAt.END; layoutParams=LinearLayout.LayoutParams(0,-2,1f) }
+            icon(row,"$name 위젯 설정",R.drawable.ic_settings) { configure(id) }
         }
     }
     private fun renderGallery() {
         gallery.removeAllViews(); page=page.coerceIn(0,(themes.size-1).coerceAtLeast(0)/4)
         galleryStatus.text=if(themes.isEmpty()) "보관한 테마가 없어요. .mwidget 파일을 가져와 주세요." else "${themes.size}개 테마 · ${page+1}/${(themes.size+3)/4}페이지"
         for(theme in themes.drop(page*4).take(4)) {
-            val panel=card(gallery); label(panel,theme.json.getString("name"),20).setTypeface(null,Typeface.BOLD)
+            val panel=card(gallery)
+            val row=LinearLayout(this).apply { orientation=LinearLayout.HORIZONTAL; gravity=android.view.Gravity.CENTER_VERTICAL; panel.addView(this) }
+            val name=theme.json.getString("name")
+            label(row,name,18).apply { setTypeface(null,Typeface.BOLD); maxLines=2; ellipsize=android.text.TextUtils.TruncateAt.END; layoutParams=LinearLayout.LayoutParams(0,-2,1f) }
+            icon(row,"$name 홈 화면에 추가",R.drawable.ic_add) { pin(theme) }
+            icon(row,"$name 더보기",R.drawable.ic_more) { anchor -> actions(theme,anchor) }
             preview(panel,theme)
-            label(panel,"${theme.width} × ${theme.height} · 테마 v${theme.json.getInt("version")}",13)
-            button(panel,"홈 화면에 추가",true) {
-                val manager=AppWidgetManager.getInstance(this)
-                ThemeStore.prefs(this).edit().putString("suggestedTheme",theme.id).apply()
-                val pinned=runCatching { manager.isRequestPinAppWidgetSupported && manager.requestPinAppWidget(MusicWidget.component(this),null,null) }.getOrDefault(false)
-                if(!pinned) status.text="홈 화면을 길게 누른 뒤 위젯 → Music Widget Runtime에서 추가해 주세요."
-            }
-            if(MusicWidget.ids(this).isNotEmpty()) button(panel,"기존 위젯에 적용") {
-                val ids=MusicWidget.ids(this)
-                if(ids.size==1) configure(ids.single(),theme.id) else if(ids.isNotEmpty()) android.app.AlertDialog.Builder(this)
-                    .setTitle("적용할 위젯 선택").setItems(ids.map { id ->
-                        val selected=ThemeStore.prefs(this).getString("widget.$id.theme","nocturne")
-                        "${themes.firstOrNull { it.id==selected }?.json?.getString("name") ?: "위젯"} · $id"
-                    }.toTypedArray()) { _,index -> configure(ids[index],theme.id) }.show()
-            }
         }
+        if(themes.isEmpty()) button(gallery,"기본 테마 복원") { restoreDefault() }
         if(page>0) button(gallery,"이전 테마") { page--; renderGallery() }
         if((page+1)*4<themes.size) button(gallery,"다음 테마") { page++; renderGallery() }
+    }
+    private fun pin(theme: Theme) {
+        val manager=AppWidgetManager.getInstance(this)
+        ThemeStore.prefs(this).edit().putString("suggestedTheme",theme.id).apply()
+        val pinned=runCatching { manager.isRequestPinAppWidgetSupported && manager.requestPinAppWidget(MusicWidget.component(this),null,null) }.getOrDefault(false)
+        if(!pinned) status.text="홈 화면을 길게 누른 뒤 위젯 → Music Widget Runtime에서 추가해 주세요."
+    }
+    private fun actions(theme: Theme,anchor: View) {
+        if(deleting || Imports.state.busy) { status.text="테마 작업이 끝난 뒤 다시 시도해 주세요."; return }
+        PopupMenu(this,anchor).apply {
+            if(MusicWidget.ids(this@MainActivity).isNotEmpty()) menu.add(0,1,0,"기존 위젯에 적용").setIcon(R.drawable.ic_settings)
+            menu.add(0,2,1,"테마 정보")
+            menu.add(0,3,2,"테마 삭제").setIcon(R.drawable.ic_delete)
+            setForceShowIcon(true)
+            setOnMenuItemClickListener { item ->
+                when(item.itemId) {
+                    1 -> {
+                        val ids=MusicWidget.ids(this@MainActivity)
+                        if(ids.size==1) configure(ids.single(),theme.id) else if(ids.isNotEmpty()) android.app.AlertDialog.Builder(this@MainActivity)
+                            .setTitle("적용할 위젯 선택").setItems(ids.map { id ->
+                                val selected=ThemeStore.prefs(this@MainActivity).getString("widget.$id.theme","nocturne")
+                                "${themes.firstOrNull { it.id==selected }?.json?.getString("name") ?: "위젯"} · $id"
+                            }.toTypedArray()) { _,index -> configure(ids[index],theme.id) }.show()
+                    }
+                    2 -> android.app.AlertDialog.Builder(this@MainActivity).setTitle(theme.json.getString("name"))
+                        .setMessage("${theme.width} × ${theme.height}\n테마 v${theme.json.getInt("version")}\n${ThemeStore.users(this@MainActivity,theme.id).size}개 위젯에서 사용 중")
+                        .setPositiveButton("닫기",null).show()
+                    3 -> confirmDelete(theme)
+                }; true
+            }; show()
+        }
+    }
+    private fun confirmDelete(theme: Theme) {
+        val count=ThemeStore.users(this,theme.id).size
+        val dialog=android.app.AlertDialog.Builder(this).setNegativeButton("취소",null)
+        if(count==0) {
+            dialog.setTitle("${theme.json.getString("name")} 삭제")
+                .setMessage("앱에 보관한 테마와 이전 버전을 삭제합니다. 원본 .mwidget 파일은 지우지 않습니다.")
+                .setPositiveButton("삭제") { _,_ -> delete(theme,null,false) }.show()
+        } else {
+            val alternatives=themes.filter { it.id!=theme.id }.map { it.id to it.json.getString("name") }.toMutableList()
+            if(alternatives.isEmpty() && theme.id!="nocturne") alternatives.add("nocturne" to "Nocturne · 기본 테마 복원")
+            if(alternatives.isEmpty()) {
+                dialog.setTitle("사용 중인 마지막 테마예요").setMessage("다른 테마를 먼저 가져와 적용하거나 홈 화면의 위젯을 제거한 뒤 삭제할 수 있어요.")
+                    .setPositiveButton("확인",null).show(); return
+            }
+            var selected=0
+            dialog.setTitle("${theme.json.getString("name")} 삭제 · 위젯 ${count}개 전환")
+                .setSingleChoiceItems(alternatives.map { it.second }.toTypedArray(),0) { _,index -> selected=index }
+                .setPositiveButton("전환하고 삭제") { _,_ ->
+                    val replacement=alternatives[selected].first
+                    delete(theme,replacement,themes.none { it.id==replacement })
+                }.show()
+        }
+    }
+    private fun delete(theme: Theme,replacement: String?,restore: Boolean) {
+        if(deleting || Imports.state.busy) return
+        deleting=true; status.text="테마를 삭제하고 있어요…"; val app=applicationContext
+        MusicWidget.worker.execute {
+            val result=runCatching { if(restore) ThemeStore.restoreDefault(app); ThemeStore.delete(app,theme.id,replacement) }
+            if(result.isSuccess) MusicWidget.refresh(app)
+            runOnUiThread {
+                deleting=false
+                if(!isFinishing && !isDestroyed) {
+                    status.text=result.fold({ if(it) "테마를 삭제했어요" else "목록에서 삭제했지만 일부 파일은 정리하지 못했어요" },{ "삭제하지 못했어요 · ${it.localizedMessage}" })
+                    refreshOptions()
+                }
+            }
+        }
     }
 }
 
@@ -211,12 +296,14 @@ class ConfigureActivity: RuntimeActivity() {
     private var selectedTheme: String?=null
     private var selectedPlayer: String?=null
     private var binding=false
+    private var initialFallback=false
     override fun onCreate(state: Bundle?) {
         super.onCreate(state); restoreUi(state)
         widgetId=intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,AppWidgetManager.INVALID_APPWIDGET_ID)
         val result=Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,widgetId); setResult(RESULT_CANCELED,result)
         if(widgetId !in MusicWidget.ids(this)) { finish(); return }
         val prefs=ThemeStore.prefs(this)
+        initialFallback=state?.getBoolean("initialFallback") ?: (!prefs.contains("widget.$widgetId.theme") && intent.getStringExtra("suggestedTheme")==null)
         selectedTheme=state?.getString("theme") ?: intent.getStringExtra("suggestedTheme") ?: prefs.getString("widget.$widgetId.theme",prefs.getString("suggestedTheme","nocturne"))
         selectedPlayer=if(state!=null) state.getString("player") else prefs.getString("widget.$widgetId.player",null)
         startUi("위젯 설정","미리 보고 적용하세요. 저장하기 전에는 홈 화면이 바뀌지 않아요.")
@@ -246,7 +333,7 @@ class ConfigureActivity: RuntimeActivity() {
             override fun onItemSelected(parent: AdapterView<*>?,view: View?,position: Int,id: Long) { if(!binding) selectedPlayer=players.getOrNull(position) }
         }
     }
-    override fun onSaveInstanceState(out: Bundle) { out.putString("theme",selectedTheme); out.putString("player",selectedPlayer); super.onSaveInstanceState(out) }
+    override fun onSaveInstanceState(out: Bundle) { out.putString("theme",selectedTheme); out.putString("player",selectedPlayer); out.putBoolean("initialFallback",initialFallback); super.onSaveInstanceState(out) }
     private fun spinner()=Spinner(this).apply {
         minimumHeight=dp(56); setPadding(dp(10),dp(8),dp(10),dp(8)); content.addView(this,LinearLayout.LayoutParams(-1,-2))
     }
@@ -255,6 +342,8 @@ class ConfigureActivity: RuntimeActivity() {
         loadCatalog(imported) { catalog,newId ->
             themes=catalog.themes
             if(newId!=null) selectedTheme=newId
+            if(initialFallback && themes.none { it.id==selectedTheme }) selectedTheme=themes.firstOrNull()?.id
+            if(selectedTheme!=null && themes.any { it.id==selectedTheme }) initialFallback=false
             binding=true
             val themeNames=themes.map { it.json.getString("name") }.toMutableList()
             val missing=selectedTheme!=null && themes.none { it.id==selectedTheme }
@@ -276,7 +365,11 @@ class ConfigureActivity: RuntimeActivity() {
         previewPanel.removeAllViews()
         val theme=themes.firstOrNull { it.id==selectedTheme }
         save.isEnabled=theme!=null
-        if(theme==null) { label(previewPanel,"선택한 테마를 표시할 수 없어요. 다른 테마를 선택하거나 원본 파일을 다시 가져와 주세요."); return }
+        if(theme==null) {
+            label(previewPanel,"선택한 테마를 표시할 수 없어요. 다른 테마를 선택하거나 원본 파일을 다시 가져와 주세요.")
+            if(themes.isEmpty()) button(previewPanel,"기본 테마 복원") { restoreDefault() }
+            return
+        }
         label(previewPanel,"적용할 디자인",18).setTypeface(null,Typeface.BOLD)
         preview(previewPanel,theme)
     }

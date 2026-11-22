@@ -85,6 +85,46 @@ object ThemeStore {
         runCatching { get(c,it.removePrefix("theme.")) }.getOrNull()
     }.sortedBy { it.json.getString("name") }
 
+    fun users(c: Context,id: String): List<Int> {
+        val p=prefs(c)
+        val stored=p.all.filter { (key,value) -> Regex("widget\\.[0-9]+\\.theme").matches(key) && value==id }
+            .keys.map { it.split('.')[1].toInt() }
+        val defaults=MusicWidget.ids(c).filter { p.getString("widget.$it.theme","nocturne")==id }
+        return (stored+defaults).distinct().sorted()
+    }
+
+    /** Unpublish and reassign atomically before removing this theme's private revisions. */
+    @Synchronized fun delete(c: Context,id: String,replacement: String?=null): Boolean {
+        require(Regex("[a-z][a-z0-9-]{0,47}").matches(id))
+        val p=prefs(c); val current=p.getString("theme.$id",null) ?: error("이미 삭제된 테마입니다")
+        val affected=users(c,id)
+        if(affected.isNotEmpty()) {
+            require(replacement!=null && replacement!=id) { "사용 중인 위젯의 대체 테마를 선택하세요" }
+            validate(get(c,replacement).dir)
+        }
+        val edit=p.edit().remove("theme.$id")
+        affected.forEach { edit.putString("widget.$it.theme",replacement) }
+        if(p.getString("suggestedTheme",null)==id) edit.remove("suggestedTheme")
+        if(id=="nocturne") edit.putBoolean("default.dismissed",true)
+        require(edit.commit()) { "테마 삭제 설정을 저장하지 못했습니다" }
+        val retained=p.all.filterKeys { it.startsWith("theme.") }.values.filterIsInstance<String>().toSet()
+        val base=root(c).canonicalFile
+        var cleaned=true
+        base.listFiles().orEmpty().filter { it.isDirectory && it.canonicalFile.parentFile==base && it.name !in retained }.forEach { dir ->
+            val belongs=dir.name==current || runCatching {
+                val manifest=File(dir,"manifest.json")
+                manifest.length() in 1..128*1024L && parse(manifest.readText(Charsets.UTF_8)).getString("id")==id
+            }.getOrDefault(false)
+            if(belongs && !runCatching { dir.deleteRecursively() }.getOrDefault(false)) cleaned=false
+        }
+        return cleaned
+    }
+
+    @Synchronized fun restoreDefault(c: Context) {
+        if(!prefs(c).contains("theme.nocturne")) c.assets.open("nocturne.mwidget").use { importTheme(c,it) }
+        require(prefs(c).edit().remove("default.dismissed").commit())
+    }
+
     fun get(c: Context, id: String): Theme {
         require(Regex("[a-z][a-z0-9-]{0,47}").matches(id))
         val dir = prefs(c).getString("theme.$id",null) ?: error("테마를 가져오세요")
@@ -300,7 +340,7 @@ object ThemeStore {
     }
 
     @Synchronized fun ensureDefault(c: Context) {
-        if(prefs(c).contains("theme.nocturne")) return
+        if(prefs(c).contains("theme.nocturne") || prefs(c).getBoolean("default.dismissed",false)) return
         c.assets.open("nocturne.mwidget").use { importTheme(c,it) }
     }
 }

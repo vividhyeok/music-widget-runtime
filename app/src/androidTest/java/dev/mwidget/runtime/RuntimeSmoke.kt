@@ -28,10 +28,15 @@ import java.util.zip.ZipOutputStream
 class RuntimeSmoke : Instrumentation() {
     private var capture=false
     private var uiCheck=false
-    override fun onCreate(arguments: Bundle?) { capture=arguments?.getString("mode")=="capture"; uiCheck=arguments?.getString("mode")=="ui-check"; super.onCreate(arguments); start() }
+    private var deleteCheck=false
+    override fun onCreate(arguments: Bundle?) { capture=arguments?.getString("mode")=="capture"; uiCheck=arguments?.getString("mode")=="ui-check"; deleteCheck=arguments?.getString("mode")=="delete-check"; super.onCreate(arguments); start() }
 
     override fun onStart() {
         try {
+            if(deleteCheck) {
+                UiHealth.checkDeletion(this)
+                finish(Activity.RESULT_OK,Bundle().apply { putString("stream","\nPASS: fixture deletion, revision cleanup and original preferences preserved\n") }); return
+            }
             if(uiCheck) {
                 UiHealth.run(this)
                 finish(Activity.RESULT_OK,Bundle().apply { putString("stream","\nPASS: read-only UI health and preferences preservation\n") }); return
