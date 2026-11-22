@@ -90,7 +90,13 @@ object ThemeStore {
         val dir = prefs(c).getString("theme.$id",null) ?: error("테마를 가져오세요")
         require(safeName(dir) && '/' !in dir)
         val file = File(root(c),dir)
-        return Theme(file,parse(File(file,"manifest.json").readText()))
+        val manifest=File(file,"manifest.json")
+        require(manifest.length() in 1..128*1024L) { "테마 설명 파일이 없거나 너무 큽니다" }
+        val theme=Theme(file,parse(manifest.readText(Charsets.UTF_8)))
+        require(theme.id==id && theme.width in 240..1024 && theme.height in 120..1024)
+        require(theme.json.getString("name").length in 1..80 && theme.json.getInt("version") in 1..2)
+        theme.json.getJSONArray("layers"); theme.json.getJSONArray("touch")
+        return theme
     }
 
     fun parse(text: String): JSONObject {
@@ -129,8 +135,9 @@ object ThemeStore {
     fun validate(dir: File): Theme {
         val manifest=File(dir,"manifest.json"); require(manifest.length() in 1..128*1024L)
         val m=parse(manifest.readText(Charsets.UTF_8))
-        keys(m,setOf("version","id","name","width","height","layers","touch"))
-        require(number(m,"version",1.0,1.0)==1.0)
+        val version=number(m,"version",1.0,2.0); require(version==1.0 || version==2.0)
+        val v2=version==2.0
+        keys(m,setOf("version","id","name","width","height","layers","touch"),if(v2) setOf("fonts") else emptySet())
         require(Regex("[a-z][a-z0-9-]{0,47}").matches(string(m,"id")))
         require(string(m,"name").length in 1..80)
         val width=number(m,"width",240.0,1024.0); val height=number(m,"height",120.0,1024.0)
@@ -141,10 +148,58 @@ object ThemeStore {
             val w=number(o,"w",0.001,1024.0); val h=number(o,"h",0.001,1024.0)
             require(x+w<=width && y+h<=height) { "레이어가 캔버스를 벗어남" }
         }
-        val layers=m.getJSONArray("layers"); require(layers.length() in 1..32)
-        for(i in 0 until layers.length()) {
-            val l=layers.getJSONObject(i); bounds(l)
+        val rootLayers=m.getJSONArray("layers"); require(rootLayers.length() in 1..if(v2) 64 else 32)
+        val layers=Scene.nodes(rootLayers); require(layers.size<=if(v2) 64 else 32)
+        val ids=mutableSetOf<String>()
+        val common=setOf("id","opacity","visibleWhen","transform","mask","maskSrc","radius","animation")
+        for(l in layers) {
+            number(l,"x",0.0,1024.0); number(l,"y",0.0,1024.0)
+            number(l,"w",0.001,1024.0); number(l,"h",0.001,1024.0)
+            if(!v2) bounds(l)
+            if(l.has("id")) require(Regex("[a-z][a-z0-9-]{0,47}").matches(string(l,"id")) && ids.add(l.getString("id")))
+            if(l.has("opacity")) number(l,"opacity",0.0,1.0)
+            if(l.has("radius")) number(l,"radius",0.0,1024.0)
+            if(l.has("visibleWhen")) require(string(l,"visibleWhen") in setOf("always","playing","paused","hasArtwork","noArtwork"))
+            if(l.has("mask")) require(string(l,"mask") in setOf("none","circle","rounded"))
+            for(k in listOf("transform","animation","gradient")) if(l.has(k)) require(l.get(k) is JSONObject)
+            l.optJSONObject("transform")?.let { t ->
+                keys(t,emptySet(),setOf("rotation","scaleX","scaleY","pivotX","pivotY","skewX","skewY","quad"))
+                for(k in listOf("rotation","scaleX","scaleY","pivotX","pivotY","skewX","skewY")) if(t.has(k)) {
+                    val range=when(k) { "scaleX","scaleY" -> 0.01..4.0; "pivotX","pivotY" -> 0.0..1.0; "skewX","skewY" -> -1.0..1.0; else -> -360.0..360.0 }
+                    number(t,k,range.start,range.endInclusive)
+                }
+                if(t.has("quad")) {
+                    val q=t.getJSONArray("quad"); require(q.length()==8)
+                    val p=DoubleArray(8) { n -> require(q.get(n) is Number); q.getDouble(n).also { require(it.isFinite() && it in 0.0..1.0) } }
+                    for(n in 0..3) { val a=n*2; val b=(n+1)%4*2; val c=(n+2)%4*2
+                        require((p[b]-p[a])*(p[c+1]-p[b+1])-(p[b+1]-p[a+1])*(p[c]-p[b])>0.0001) { "원근 사각형은 시계 방향 볼록 도형이어야 함" }
+                    }
+                }
+            }
+            l.optJSONObject("animation")?.let { a ->
+                keys(a,setOf("kind","durationMs","steps","when","fallback"),setOf("from","to","dx","dy","sources"))
+                require(string(a,"kind") in setOf("rotate","translate","pulse","frames"))
+                require(number(a,"durationMs",1000.0,60000.0)%1==0.0 && number(a,"steps",2.0,12.0)%1==0.0)
+                require(string(a,"when") in setOf("playing","always") && string(a,"fallback")=="static")
+                for(k in listOf("from","to","dx","dy")) if(a.has(k)) number(a,k,if(k in listOf("dx","dy")) -1024.0 else -360.0,if(k in listOf("dx","dy")) 1024.0 else 360.0)
+                if(a.getString("kind")=="pulse") { if(a.has("from")) number(a,"from",0.0,1.0); if(a.has("to")) number(a,"to",0.0,1.0) }
+                if(a.getString("kind")=="frames") require(l.getString("type") in setOf("image","artwork","icon") && a.getJSONArray("sources").length()==a.getInt("steps"))
+                else require(!a.has("sources"))
+            }
+            Scene.local(l)
             val fields=when(string(l,"type")) {
+                "group" -> { require(v2); setOf("children") }
+                "shape" -> {
+                    require(v2 && string(l,"shape") in setOf("rect","ellipse","polygon"))
+                    require(Regex("#[0-9a-fA-F]{6}").matches(string(l,"color")))
+                    if(l.has("strokeColor")) require(Regex("#[0-9a-fA-F]{6}").matches(string(l,"strokeColor")))
+                    if(l.has("strokeWidth")) number(l,"strokeWidth",0.0,128.0)
+                    l.optJSONObject("gradient")?.let { g -> keys(g,setOf("endColor","angle")); require(Regex("#[0-9a-fA-F]{6}").matches(string(g,"endColor"))); number(g,"angle",-360.0,360.0) }
+                    if(l.getString("shape")=="polygon") require(l.has("points"))
+                    if(l.has("points")) { val p=l.getJSONArray("points"); require(p.length() in 6..128 && p.length()%2==0); for(n in 0 until p.length()) require(p.get(n) is Number && p.getDouble(n).isFinite() && p.getDouble(n) in 0.0..1.0) }
+                    setOf("shape","color")
+                }
+                "equalizer" -> { require(v2 && string(l,"mode") in setOf("static","simulated")); require(Regex("#[0-9a-fA-F]{6}").matches(string(l,"color"))); require(number(l,"bars",3.0,48.0)%1==0.0); if(l.has("gap")) number(l,"gap",0.0,1.0); if(l.has("seed")) require(number(l,"seed",0.0,65535.0)%1==0.0); setOf("mode","color","bars") }
                 "progress" -> {
                     for (key in listOf("color","trackColor"))
                         require(Regex("#[0-9a-fA-F]{6}").matches(string(l,key)))
@@ -152,12 +207,25 @@ object ThemeStore {
                     if(l.has("showFill")) require(l.get("showFill") is Boolean)
                     require(l.has("thumbSrc")==l.has("thumbWidth"))
                     if(l.has("thumbWidth")) number(l,"thumbWidth",0.001,l.getDouble("w"))
+                    if(l.has("direction")) require(string(l,"direction") in setOf("horizontal","vertical","circular"))
+                    if(l.has("strokeWidth")) number(l,"strokeWidth",0.001,128.0)
+                    if(l.has("startAngle")) number(l,"startAngle",-360.0,360.0)
+                    if(l.has("sweepAngle")) number(l,"sweepAngle",1.0,360.0)
+                    if(l.optString("direction")=="circular") require(listOf("trackSrc","fillSrc","thumbSrc","thumbWidth").none { l.has(it) })
                     setOf("color","trackColor")
                 }
                 "image" -> setOf("src")
                 "artwork" -> setOf("fallback")
                 "text" -> {
-                    require(string(l,"field") in setOf("title","artist","album","player","status","elapsed","duration"))
+                    require(string(l,"field") in setOf("title","artist","album","player","status","elapsed","duration") || v2 && string(l,"field")=="literal")
+                    if(l.optString("field")=="literal") require(string(l,"text").length<=2048)
+                    if(l.has("text")) require(string(l,"text").length<=2048)
+                    if(l.has("align")) require(string(l,"align") in setOf("left","center","right"))
+                    if(l.has("valign")) require(string(l,"valign") in setOf("top","center","bottom"))
+                    if(l.has("overflow")) require(string(l,"overflow") in setOf("ellipsis","clip","wrap","marquee"))
+                    if(l.has("maxLines")) require(number(l,"maxLines",1.0,8.0)%1==0.0)
+                    if(l.has("lineSpacing")) number(l,"lineSpacing",0.8,2.0)
+                    if(l.has("letterSpacing")) number(l,"letterSpacing",-0.1,1.0)
                     number(l,"size",6.0,160.0)
                     require(Regex("#[0-9a-fA-F]{6}").matches(string(l,"color")))
                     setOf("field","size","color","font")
@@ -165,19 +233,41 @@ object ThemeStore {
                 "icon" -> { require(string(l,"action") in actions); setOf("action","src") }
                 else -> error("지원하지 않는 레이어")
             }
-            keys(l,rect+fields+"type",when(l.getString("type")) { "icon" -> setOf("playingSrc"); "progress" -> setOf("trackSrc","fillSrc","thumbSrc","thumbWidth","radius","showFill"); else -> emptySet() })
-            for(k in listOf("src","fallback","font","playingSrc","trackSrc","fillSrc","thumbSrc")) if(l.has(k)) {
-                val p=string(l,k); require(safeName(p)); require(p.endsWith(if(k=="font") ".ttf" else ".png") || k=="font" && p.endsWith(".otf"))
+            val extra=when(l.getString("type")) { "icon" -> setOf("playingSrc","fit"); "image","artwork" -> setOf("fit"); "text" -> setOf("text","align","valign","overflow","maxLines","lineSpacing","letterSpacing"); "shape" -> setOf("strokeColor","strokeWidth","gradient","points"); "equalizer" -> setOf("gap","seed"); "progress" -> setOf("trackSrc","fillSrc","thumbSrc","thumbWidth","radius","showFill")+(if(v2) setOf("direction","strokeWidth","startAngle","sweepAngle") else emptySet()); else -> emptySet() }
+            val legacy=when(l.getString("type")) { "icon" -> setOf("playingSrc"); "progress" -> extra; else -> emptySet() }
+            keys(l,rect+fields+"type",if(v2) extra+common else legacy)
+            if(l.has("fit")) require(string(l,"fit") in setOf("crop","contain","stretch"))
+            val assets=listOf("src","fallback","font","playingSrc","trackSrc","fillSrc","thumbSrc","maskSrc").filter { l.has(it) }.map { it to string(l,it) }.toMutableList()
+            l.optJSONObject("animation")?.optJSONArray("sources")?.let { a -> for(n in 0 until a.length()) assets.add("src" to a.getString(n)) }
+            for((k,p) in assets) {
+                require(safeName(p)); require(p.endsWith(if(k=="font") ".ttf" else ".png") || k=="font" && p.endsWith(".otf"))
                 require(File(dir,p).isFile) { "에셋 누락: $p" }; used.add(p)
             }
         }
+        fun groups(a: JSONArray,depth: Int) { require(depth<=4); for(n in 0 until a.length()) a.getJSONObject(n).optJSONArray("children")?.let { require(it.length() in 1..64); groups(it,depth+1) } }
+        groups(rootLayers,0)
+        if(v2) {
+            val fonts=m.optJSONArray("fonts") ?: JSONArray(); require(fonts.length()<=16)
+            val declared=mutableSetOf<String>()
+            for(n in 0 until fonts.length()) { val f=fonts.getJSONObject(n); keys(f,setOf("file","noonnu","source","license"))
+                require(declared.add(string(f,"file")) && Regex("https://noonnu\\.cc/font_page/[0-9]+").matches(string(f,"noonnu")) && string(f,"source").startsWith("https://") && string(f,"license")=="LICENSE.txt") }
+            require(declared==layers.filter { it.getString("type")=="text" }.map { it.getString("font") }.toSet()) { "눈누 폰트 출처를 명시하세요" }
+            if(declared.isNotEmpty()) require(File(dir,"LICENSE.txt").length()>0)
+        }
         val touch=m.getJSONArray("touch"); require(touch.length() in 0..8)
         for(i in 0 until touch.length()) {
-            val a=touch.getJSONObject(i); keys(a,rect+setOf("action","label")); bounds(a)
+            val a=touch.getJSONObject(i)
+            if(v2 && a.has("target")) { keys(a,setOf("target","action","label")); require(string(a,"target") in ids) }
+            else { keys(a,rect+setOf("action","label")); bounds(a) }
+            val theme=Theme(dir,m); val box=Scene.hit(theme,a)
+            require(box.left>=0 && box.top>=0 && box.right<=width && box.bottom<=height && box.width()>0 && box.height()>0) { "터치 영역이 캔버스를 벗어남" }
+            if(a.has("target")) {
+                fun stable(array: JSONArray,inherited: Boolean) { for(n in 0 until array.length()) { val l=array.getJSONObject(n); val changing=inherited || l.has("animation") || l.optString("visibleWhen","always")!="always"; if(l.optString("id")==a.getString("target")) require(!changing) { "움직이거나 숨겨지는 요소에는 고정 touch 좌표를 사용하세요" }; l.optJSONArray("children")?.let { stable(it,changing) } } }
+                stable(rootLayers,false)
+            }
             require(string(a,"action") in actions && string(a,"label").length in 1..80)
             for(j in 0 until i) {
-                val b=touch.getJSONObject(j)
-                require(!(a.getDouble("x")<b.getDouble("x")+b.getDouble("w") && b.getDouble("x")<a.getDouble("x")+a.getDouble("w") && a.getDouble("y")<b.getDouble("y")+b.getDouble("h") && b.getDouble("y")<a.getDouble("y")+a.getDouble("h"))) { "터치 영역 중첩" }
+                require(!android.graphics.RectF.intersects(box,Scene.hit(theme,touch.getJSONObject(j)))) { "터치 영역 중첩" }
             }
         }
         var pixels=0L
@@ -195,7 +285,7 @@ object ThemeStore {
                     val bitmap=BitmapFactory.decodeByteArray(data,0,data.size) ?: error("손상된 PNG"); bitmap.recycle()
                 }
                 "ttf","otf" -> {
-                    require(f.length() in 4..2*1024*1024L)
+                    require(f.length() in 4..(if(v2) 8 else 2)*1024*1024L)
                     val h=header(f,4)
                     require(h.contentEquals(byteArrayOf(0,1,0,0)) || h.contentEquals("OTTO".toByteArray()))
                     val data=f.readBytes()

@@ -1,3 +1,5 @@
+> 최신 앱 개선·기기 검증은 [docs/upgrade-v0.4.0.md](docs/upgrade-v0.4.0.md), 엔진 인계는 [docs/handoff-v0.3.0.md](docs/handoff-v0.3.0.md)를 먼저 읽으세요. 아래는 이전 버전의 기록입니다.
+
 # Music Widget Runtime 작업 인계
 
 ## 사용자가 요청한 결과

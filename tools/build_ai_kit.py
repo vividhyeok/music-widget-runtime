@@ -13,6 +13,7 @@ with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED) as archive:
     archive.write(ROOT / "docs/ai-kit-start.md", "README.md")
     archive.write(ROOT / "requirements.txt", "requirements.txt")
     archive.writestr("AGENTS.md", "Read README.md and SKILL.md before creating a widget theme.\n")
+    archive.writestr("CLAUDE.md", "Read README.md and SKILL.md; run scripts/build.py and inspect its output before delivering a .mwidget.\n")
     for path in sorted((ROOT / "themes").rglob("*")):
         if path.is_file():
             archive.write(path, "examples/" + path.relative_to(ROOT / "themes").as_posix())

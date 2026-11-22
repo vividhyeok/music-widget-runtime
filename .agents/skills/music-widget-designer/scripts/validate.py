@@ -3,6 +3,7 @@ import io, json, re, stat, sys, zipfile
 from pathlib import Path
 from PIL import Image, ImageFont
 from jsonschema import Draft202012Validator
+from scene import walk, hits
 
 MAX_ZIP=16*1024*1024
 MAX_TOTAL=24*1024*1024
@@ -41,21 +42,37 @@ def validate_bytes(raw):
     m=json.loads(files['manifest.json'],object_pairs_hook=no_duplicates,parse_constant=lambda x: (_ for _ in ()).throw(ValueError(x)))
     Draft202012Validator(json.loads(SCHEMA.read_text(encoding='utf-8'))).validate(m)
     used={'manifest.json'}; pixels=0
-    for l in m['layers']:
+    nodes=list(walk(m['layers']))
+    if len(nodes)>(64 if m['version']==2 else 32): raise ValueError('Total node budget')
+    ids=[l['id'] for l,_,_ in nodes if 'id' in l]
+    if len(ids)!=len(set(ids)): raise ValueError('Duplicate node id')
+    for l,_,_ in nodes:
+        if 'points' in l and len(l['points'])%2 or l['type']=='shape' and l['shape']=='polygon' and 'points' not in l: raise ValueError('Polygon requires point pairs')
+        if l['type']=='text' and l['field']=='literal' and 'text' not in l: raise ValueError('Literal requires text')
+        a=l.get('animation',{})
+        if a.get('kind')=='frames':
+            if l['type'] not in ('image','artwork','icon') or len(a.get('sources',[]))!=a['steps']: raise ValueError('Frame sources must match steps')
+        elif 'sources' in a: raise ValueError('Only frames animation accepts sources')
+        if a.get('kind')=='pulse' and any(not 0<=a[k]<=1 for k in ('from','to') if k in a): raise ValueError('Pulse opacity range')
         if l['type']=='progress':
+            if l.get('direction')=='circular' and any(k in l for k in ('trackSrc','fillSrc','thumbSrc','thumbWidth')): raise ValueError('Circular progress uses vector strokes, not slider assets')
             if ('thumbSrc' in l)!=('thumbWidth' in l): raise ValueError('Thumb image and width required together')
             if l.get('thumbWidth',0)>l['w']: raise ValueError('Thumb exceeds track')
-        for key in ('src','playingSrc','fallback','font','trackSrc','fillSrc','thumbSrc'):
-            if key in l:
-                p=l[key]; used.add(p)
+        assets=[(key,l[key]) for key in ('src','playingSrc','fallback','font','trackSrc','fillSrc','thumbSrc','maskSrc') if key in l]
+        assets += [('src',p) for p in a.get('sources',[])]
+        for key,p in assets:
+                used.add(p)
                 if not safe_name(p) or p not in files: raise ValueError('Missing asset: '+p)
                 if key=='font' and not p.endswith(('.ttf','.otf')): raise ValueError('Font extension')
                 if key!='font' and not p.endswith('.png'): raise ValueError('Image extension')
-    for l in m['layers']+m['touch']:
-        if l['x']+l['w']>m['width'] or l['y']+l['h']>m['height']: raise ValueError('Rectangle outside canvas')
-    for i,a in enumerate(m['touch']):
-        for b in m['touch'][i+1:]:
-            if a['x']<b['x']+b['w'] and b['x']<a['x']+a['w'] and a['y']<b['y']+b['h'] and b['y']<a['y']+a['h']: raise ValueError('Overlapping touch areas')
+    if m['version']==1:
+        for l in m['layers']:
+            if l['x']+l['w']>m['width'] or l['y']+l['h']>m['height']: raise ValueError('Rectangle outside canvas')
+    hits(m)
+    if m['version']==2:
+        fonts=m.get('fonts',[]); declared=[f['file'] for f in fonts]
+        if len(declared)!=len(set(declared)) or set(declared)!={l['font'] for l,_,_ in nodes if l['type']=='text'}: raise ValueError('Declare Noonnu provenance for every font')
+        if declared and not files.get('LICENSE.txt'): raise ValueError('Font license required')
     for p,data in files.items():
         if p.endswith('.png'):
             with Image.open(io.BytesIO(data)) as im:
@@ -65,7 +82,7 @@ def validate_bytes(raw):
                 if pixels>8388608: raise ValueError('Aggregate image budget')
                 im.verify()
         elif p.endswith(('.ttf','.otf')):
-            if len(data)>2*1024*1024 or data[:4] not in (b'\x00\x01\x00\x00',b'OTTO'): raise ValueError('Font format/size')
+            if len(data)>(8 if m['version']==2 else 2)*1024*1024 or data[:4] not in (b'\x00\x01\x00\x00',b'OTTO'): raise ValueError('Font format/size')
             ImageFont.truetype(io.BytesIO(data),24)
         elif p not in ('manifest.json','LICENSE.txt'): raise ValueError('Unsupported file: '+p)
     if any(p not in used and p!='LICENSE.txt' for p in files): raise ValueError('Unreferenced asset')

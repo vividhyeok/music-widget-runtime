@@ -3,6 +3,22 @@
 원하는 디자인을 AI로 만들고 Android 홈 화면에서 사용하는 음악 위젯입니다.
 Android 12 이상에서 음악 앱의 MediaSession을 통해 곡 정보와 재생 제어를 연결합니다.
 
+## v0.4.0: 앱에서 미리 보고 적용하기
+
+보관한 테마의 실제 런타임 미리보기, 적용 전 미리보기, 홈 화면 추가, 기존 위젯별 적용을 제공합니다. 미리보기 실패 시 재시도와 복구 안내를 표시하며, 화면을 다시 만들거나 설정 앱에서 돌아와도 테마·플레이어 선택을 유지합니다. 기존 테마와 위젯 설정은 업데이트 후 그대로 사용합니다. [사용성 개선과 실기기 검증](docs/upgrade-v0.4.0.md)을 참고하세요.
+
+## v0.3.0: 표현 엔진과 AI 제작 환경
+
+- 기존 v1 테마와 호환되는 v2: 그룹, 회전·스케일·기울임·원근, 투명도, 원형·둥근·PNG 마스크, 도형·그라데이션, 상태별 표시.
+- 텍스트 정렬·여러 줄·말줄임·자르기, 가로·세로·원형 진행 표시, 변형을 따라가는 터치 영역.
+- 정적 구간과 동적 구간을 분리하는 하이브리드 호스트. 단계별 회전·이동·점멸·프레임·마키·장식용 이퀄라이저는 **실험적**이며 메모리·절전·런처에 따라 정적으로 대체됩니다. 부드러운 연속 회전이나 실제 오디오 시각화는 지원하지 않습니다.
+- 새 디자인의 폰트는 [눈누](https://noonnu.cc/index)에서 선택하고, 원 제작자의 재배포 허용 TTF/OTF와 라이선스·출처를 동봉합니다.
+- ChatGPT/Claude가 저장소의 AGENTS.md/CLAUDE.md 또는 제작 키트의 SKILL.md에서 바로 시작할 수 있습니다. API 키 없이 AI의 파일 실행 환경에서 제작합니다.
+
+![Orbit v2 근사 미리보기](dist/orbit.png)
+
+제작 키트 ZIP을 풀고 `python scripts/build.py examples/orbit output/orbit`를 실행하면 .mwidget, 재생·일시정지·긴 한글·정보 누락 근사 이미지, contact-sheet와 review.json을 만듭니다. AI는 이미지를 직접 확인하고 수정해 전달합니다. Python 미리보기는 실제 Android 출력과 구분합니다. 연결된 개발용 Android 환경에서는 `--android-serial SERIAL`로 실제 렌더러와 AppWidgetHostView 캡처를 추가합니다. [검증 준비](.agents/skills/music-widget-designer/references/android-verification.md), [지원 기능](.agents/skills/music-widget-designer/references/capabilities.json), [엔진 설계](docs/runtime-v2.md)를 참고하세요.
+
 ![Nocturne 미리보기](dist/nocturne.png)
 
 ## 처음 사용하는 분
@@ -74,7 +90,7 @@ ADB가 연결되어 있다면 `adb install -r app/build/outputs/apk/debug/app-de
 ## 검증과 개인정보
 
 자동 테스트는 패키지 검증과 Android 렌더링·버튼 구성을 확인합니다.
-Galaxy S22에 무선 ADB 업데이트 설치를 확인했으며 모든 음악 앱과 런처에서의 동작을 보장하지는 않습니다.
+Galaxy S22에서 v0.2.0 → v0.4.0 무선 ADB 업데이트와 기존 테마 파일·설정·홈 위젯 연결 보존을 확인했습니다. 앱 미리보기 4개가 화면 재생성 전후 모두 표시되는 실제 기기 검사도 통과했습니다. 모든 런처와 음악 앱, 장시간 동작을 보장하지는 않습니다.
 알림 리스너는 활성 MediaSession 조회에 사용하며 알림 내용을 저장하지 않습니다.
 테마와 위젯 설정은 앱 내부에 저장됩니다.
 

@@ -1,0 +1,1 @@
+Read AGENTS.md first. For theme creation use .agents/skills/music-widget-designer/SKILL.md. The same self-contained Python workflow is intended for Claude and ChatGPT. No provider API key is needed to create a theme in an AI file execution environment.

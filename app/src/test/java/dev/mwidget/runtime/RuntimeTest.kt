@@ -34,6 +34,71 @@ class RuntimeTest {
     private val context: Application get() = RuntimeEnvironment.getApplication()
     private val tape get() = File(System.getProperty("mwidget.samples"),"tape-deck.mwidget")
 
+    @Test fun v2OrbitImportsRendersAndHonorsMotionBudget() {
+        val theme=ThemeStore.importTheme(context,File(System.getProperty("mwidget.samples"),"orbit.mwidget").inputStream())
+        assertEquals(2,theme.json.getInt("version"))
+        val song=Song(title="달빛 아래 긴 한국어 제목과 English Title",playing=true,position=50,duration=100)
+        val first=Renderer.render(theme,song,720,360,0,true)
+        val later=Renderer.render(theme,song,720,360,3000,true)
+        assertFalse(first.sameAs(later))
+        val paused=song.copy(playing=false)
+        assertTrue(Renderer.render(theme,paused,720,360,0,true).sameAs(Renderer.render(theme,paused,720,360,3000,true)))
+        assertEquals(1,Dynamics.plan(theme,song,false).frames)
+        assertEquals(1,Dynamics.plan(theme,paused).frames)
+        val plan=Dynamics.plan(theme,song)
+        assertEquals(12,plan.frames)
+        val tiles=HybridHost.tiles(theme,song,360,180,plan,900000)
+        assertNotNull(tiles)
+        assertTrue(tiles!!.any { it.frames.size>1 })
+        assertNull(HybridHost.tiles(theme,song,360,180,plan,10))
+        val root=MusicWidget.render(context,987,theme,song,null,SizeF(180f,90f),null).apply(context,FrameLayout(context))
+        assertEquals(1,root.findViewById<ViewGroup>(R.id.hits).childCount)
+        assertTrue(root.findViewById<ViewGroup>(R.id.motion).childCount>0)
+        fun noError(view: View) { assertFalse(view is android.widget.TextView && view.text.toString().contains("Problem loading")); if(view is ViewGroup) for(n in 0 until view.childCount) noError(view.getChildAt(n)) }
+        noError(root)
+        val reportDir=File(System.getProperty("mwidget.samples"),"../app/build/reports/expression").apply { mkdirs() }
+        File(reportDir,"orbit-playing-android-native.png").outputStream().use { first.compress(Bitmap.CompressFormat.PNG,100,it) }
+        File(reportDir,"orbit-frame-android-native.png").outputStream().use { later.compress(Bitmap.CompressFormat.PNG,100,it) }
+        first.recycle(); later.recycle(); tiles.forEach { it.frames.forEach { tile -> tile.bitmap.recycle() } }
+    }
+
+    @Test fun v2TransformsMaskOpacityAndTouchUseSameCoordinates() {
+        val dir=File(context.cacheDir,"scene-test").apply { mkdirs() }
+        val json=org.json.JSONObject("""{"version":2,"id":"geometry","name":"Geometry","width":400,"height":240,
+            "layers":[{"type":"group","x":100,"y":50,"w":100,"h":50,"transform":{"rotation":90},"children":[
+                {"id":"button","type":"shape","shape":"rect","x":0,"y":0,"w":100,"h":50,"color":"#ff0000","opacity":0.5,"mask":"circle"}]}],
+            "touch":[{"target":"button","action":"toggle","label":"Play"}]}""")
+        File(dir,"manifest.json").writeText(json.toString())
+        val theme=ThemeStore.validate(dir)
+        val hit=Scene.hit(theme,json.getJSONArray("touch").getJSONObject(0))
+        assertEquals(125f,hit.left,0.01f); assertEquals(25f,hit.top,0.01f)
+        assertEquals(50f,hit.width(),0.01f); assertEquals(100f,hit.height(),0.01f)
+        val image=Renderer.render(theme,Song(),400,240)
+        assertTrue(kotlin.math.abs(128-Color.alpha(image.getPixel(150,75)))<=1)
+        assertEquals(Color.TRANSPARENT,image.getPixel(126,26))
+        val node=json.getJSONArray("layers").getJSONObject(0)
+        node.put("animation",org.json.JSONObject("""{"kind":"rotate","durationMs":6000,"steps":6,"when":"playing","fallback":"static"}"""))
+        File(dir,"manifest.json").writeText(json.toString())
+        assertThrows(Exception::class.java) { ThemeStore.validate(dir) }
+        image.recycle()
+    }
+
+    @Test fun v2RejectsUnsafeOrUnrunnableDeclarations() {
+        val dir=File(context.cacheDir,"invalid-v2").apply { mkdirs() }
+        val base="""{"version":2,"id":"invalid","name":"Invalid","width":400,"height":240,"layers":[NODE],"touch":[]}"""
+        val node="""{"type":"shape","shape":"rect","x":0,"y":0,"w":100,"h":100,"color":"#ffffff"EXTRA}"""
+        for(extra in listOf(
+            ",\"transform\":{\"quad\":[0,0,1,1,1,0,0,1]}",
+            ",\"transform\":{\"skewX\":1,\"skewY\":1}",
+            ",\"transform\":false",
+            ",\"animation\":{\"kind\":\"pulse\",\"durationMs\":6000,\"steps\":6,\"when\":\"playing\",\"fallback\":\"static\",\"from\":2}",
+            ",\"animation\":{\"kind\":\"javascript\",\"durationMs\":6000,\"steps\":6,\"when\":\"playing\",\"fallback\":\"static\"}"
+        )) {
+            File(dir,"manifest.json").writeText(base.replace("NODE",node.replace("EXTRA",extra)))
+            assertThrows(Exception::class.java) { ThemeStore.validate(dir) }
+        }
+    }
+
     @Test fun customProgressThumbMovesAndStaysInsideTrack() {
         ThemeStore.ensureDefault(context)
         val source=ThemeStore.get(context,"nocturne")

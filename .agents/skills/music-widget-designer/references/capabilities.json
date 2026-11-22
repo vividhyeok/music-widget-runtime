@@ -1,0 +1,18 @@
+{
+  "runtimeVersion": "0.3.0",
+  "packageVersions": [1, 2],
+  "static": ["png layers", "transparent canvas", "group", "rotation", "scale", "skew", "convex perspective quad", "opacity", "circle/rounded/alpha PNG mask", "crop/contain/stretch", "rectangle/ellipse/polygon", "linear gradient", "stroke", "state visibility", "text left/center/right", "text top/center/bottom", "clip/ellipsis/wrap", "letter spacing", "horizontal/vertical/circular progress", "custom progress track/fill/thumb", "transformed touch target"],
+  "experimental": {
+    "motion": "Cropped bitmap segments in native RemoteViews ViewFlipper; sampled steps, not smooth continuous animation",
+    "effects": ["rotate", "translate ping-pong", "pulse opacity", "PNG frames", "marquee", "simulated equalizer"],
+    "timeline": "All visible active effects must share durationMs; marquee and simulated equalizer use 12000ms",
+    "budget": "At most 3 animated root segments, 2-12 frames, minimum 500ms frame interval, total 900000 bitmap pixels across responsive sizes",
+    "fallback": "Static pose; marquee becomes ellipsis; equalizer holds fixed decorative bars",
+    "disabled": "User motion switch, battery saver, system animation scale zero, mixed periods or bitmap budget overflow",
+    "compatibility": "Requires launcher/device testing; API support alone does not certify a launcher"
+  },
+  "unsupported": ["real audio waveform/FFT capture", "arbitrary JavaScript", "WebView/Lottie in home widget", "drag seeking", "continuous 60fps rotation", "arbitrary network assets", "arbitrary player commands", "guaranteed One UI pixel identity"],
+  "actions": ["previous", "toggle", "next", "switch", "settings", "rewind", "forward", "stop"],
+  "fonts": "Select on Noonnu; bundle author's redistributable TTF/OTF and license; record provenance for each v2 font",
+  "evidence": ["portable Pillow approximation", "Robolectric native Android regression", "Android instrumentation Canvas and AppWidgetHostView capture", "separate physical device and launcher verification"]
+}

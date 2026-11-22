@@ -1,0 +1,4 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent">
+    <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:src="@drawable/widget_preview" android:scaleType="fitCenter" android:contentDescription="Music Widget 디자인 예시"/>
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="bottom|center_horizontal" android:padding="4dp" android:background="#E62A4437" android:textColor="#FFFFFFFF" android:text="디자인 예시 · 테마를 선택해 주세요" android:textSize="12sp"/>
+</FrameLayout>

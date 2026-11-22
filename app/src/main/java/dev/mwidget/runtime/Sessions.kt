@@ -120,9 +120,9 @@ class NotifListener : NotificationListenerService() {
     private val handler = Handler(Looper.getMainLooper())
     private val refresh = object : Runnable {
         override fun run() {
-            MusicWidget.refresh(this@NotifListener)
+            if(getSystemService(android.os.PowerManager::class.java).isInteractive) MusicWidget.refresh(this@NotifListener)
             if (MusicWidget.ids(this@NotifListener).isNotEmpty() &&
-                callbacks.values.any { it.first.playbackState?.state == PlaybackState.STATE_PLAYING }) {
+                callbacks.values.any { it.first.playbackState?.state == PlaybackState.STATE_PLAYING } && needsTimeline()) {
                 handler.postDelayed(this,5000)
             }
         }
@@ -130,6 +130,24 @@ class NotifListener : NotificationListenerService() {
     private val callbacks = mutableMapOf<MediaSession.Token, Pair<MediaController,MediaController.Callback>>()
     private val manager by lazy { getSystemService(MediaSessionManager::class.java) }
     private val listener = MediaSessionManager.OnActiveSessionsChangedListener { bind(it.orEmpty()) }
+    private val screenReceiver=object: android.content.BroadcastReceiver() {
+        override fun onReceive(context: Context,intent: android.content.Intent) = schedule()
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+        registerReceiver(screenReceiver,android.content.IntentFilter().apply {
+            addAction(android.content.Intent.ACTION_SCREEN_ON)
+            addAction(android.os.PowerManager.ACTION_POWER_SAVE_MODE_CHANGED)
+        },Context.RECEIVER_NOT_EXPORTED)
+    }
+
+    private fun needsTimeline(): Boolean = MusicWidget.ids(this).any { id ->
+        runCatching {
+            val theme=ThemeStore.get(this,ThemeStore.prefs(this).getString("widget.$id.theme","nocturne")!!)
+            Scene.nodes(theme.json.getJSONArray("layers")).any { it.optString("type")=="progress" || it.optString("field") in setOf("elapsed","duration") }
+        }.getOrDefault(false)
+    }
 
     override fun onListenerConnected() {
         super.onListenerConnected()
@@ -179,5 +197,5 @@ class NotifListener : NotificationListenerService() {
         super.onListenerDisconnected()
     }
 
-    override fun onDestroy() { stopTracking(); super.onDestroy() }
+    override fun onDestroy() { unregisterReceiver(screenReceiver); stopTracking(); super.onDestroy() }
 }

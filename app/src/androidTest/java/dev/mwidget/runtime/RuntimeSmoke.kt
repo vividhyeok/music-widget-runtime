@@ -26,10 +26,20 @@ import java.util.zip.ZipOutputStream
 
 /** On-device smoke suite. Run on a disposable emulator using tools/verify-emulator.ps1. */
 class RuntimeSmoke : Instrumentation() {
-    override fun onCreate(arguments: Bundle?) { super.onCreate(arguments); start() }
+    private var capture=false
+    private var uiCheck=false
+    override fun onCreate(arguments: Bundle?) { capture=arguments?.getString("mode")=="capture"; uiCheck=arguments?.getString("mode")=="ui-check"; super.onCreate(arguments); start() }
 
     override fun onStart() {
         try {
+            if(uiCheck) {
+                UiHealth.run(this)
+                finish(Activity.RESULT_OK,Bundle().apply { putString("stream","\nPASS: read-only UI health and preferences preservation\n") }); return
+            }
+            if(capture) {
+                ThemeCapture.run(targetContext) { block -> main(block) }
+                finish(Activity.RESULT_OK,Bundle().apply { putString("stream","\nPASS: theme capture\n") }); return
+            }
             runSuite()
             finish(Activity.RESULT_OK,Bundle().apply { putString("stream","\nPASS: imports, bad archives, rendering, widget isolation, session callbacks, 3 transport buttons, switch\n") })
         } catch (error: Throwable) {

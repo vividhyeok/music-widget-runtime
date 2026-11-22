@@ -1,265 +1,331 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Music Widget v1",
-  "type": "object",
-  "properties": {
-    "version": {
-      "const": 1
-    },
-    "id": {
-      "type": "string",
-      "pattern": "^[a-z][a-z0-9-]{0,47}$"
-    },
-    "name": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 80
-    },
-    "width": {
-      "type": "integer",
-      "minimum": 240,
-      "maximum": 1024
-    },
-    "height": {
-      "type": "integer",
-      "minimum": 120,
-      "maximum": 1024
-    },
-    "layers": {
-      "type": "array",
-      "minItems": 1,
-      "maxItems": 32,
-      "items": {
-        "oneOf": [
-          {
-            "type": "object",
-            "properties": {
-              "type": {
-                "const": "progress"
+  "title": "Music Widget v1 and v2",
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,47}$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 240,
+          "maximum": 1024
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 120,
+          "maximum": 1024
+        },
+        "layers": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "const": "progress"
+                  },
+                  "x": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1024
+                  },
+                  "y": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1024
+                  },
+                  "w": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 1024
+                  },
+                  "h": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 1024
+                  },
+                  "color": {
+                    "type": "string",
+                    "pattern": "^#[0-9A-Fa-f]{6}$"
+                  },
+                  "trackColor": {
+                    "type": "string",
+                    "pattern": "^#[0-9A-Fa-f]{6}$"
+                  },
+                  "trackSrc": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+                    "maxLength": 160
+                  },
+                  "fillSrc": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+                    "maxLength": 160
+                  },
+                  "thumbSrc": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+                    "maxLength": 160
+                  },
+                  "thumbWidth": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 1024
+                  },
+                  "radius": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1024
+                  },
+                  "showFill": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "type",
+                  "x",
+                  "y",
+                  "w",
+                  "h",
+                  "color",
+                  "trackColor"
+                ],
+                "additionalProperties": false
               },
-              "x": {
-                "type": "number",
-                "minimum": 0,
-                "maximum": 1024
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "const": "image"
+                  },
+                  "x": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1024
+                  },
+                  "y": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1024
+                  },
+                  "w": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 1024
+                  },
+                  "h": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 1024
+                  },
+                  "src": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+                    "maxLength": 160
+                  }
+                },
+                "required": [
+                  "type",
+                  "x",
+                  "y",
+                  "w",
+                  "h",
+                  "src"
+                ],
+                "additionalProperties": false
               },
-              "y": {
-                "type": "number",
-                "minimum": 0,
-                "maximum": 1024
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "const": "artwork"
+                  },
+                  "x": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1024
+                  },
+                  "y": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1024
+                  },
+                  "w": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 1024
+                  },
+                  "h": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 1024
+                  },
+                  "fallback": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+                    "maxLength": 160
+                  }
+                },
+                "required": [
+                  "type",
+                  "x",
+                  "y",
+                  "w",
+                  "h",
+                  "fallback"
+                ],
+                "additionalProperties": false
               },
-              "w": {
-                "type": "number",
-                "exclusiveMinimum": 0,
-                "maximum": 1024
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "const": "text"
+                  },
+                  "x": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1024
+                  },
+                  "y": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1024
+                  },
+                  "w": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 1024
+                  },
+                  "h": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 1024
+                  },
+                  "field": {
+                    "enum": [
+                      "title",
+                      "artist",
+                      "album",
+                      "player",
+                      "status",
+                      "elapsed",
+                      "duration"
+                    ]
+                  },
+                  "size": {
+                    "type": "number",
+                    "minimum": 6,
+                    "maximum": 160
+                  },
+                  "color": {
+                    "type": "string",
+                    "pattern": "^#[0-9A-Fa-f]{6}$"
+                  },
+                  "font": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+                    "maxLength": 160
+                  }
+                },
+                "required": [
+                  "type",
+                  "x",
+                  "y",
+                  "w",
+                  "h",
+                  "field",
+                  "size",
+                  "color",
+                  "font"
+                ],
+                "additionalProperties": false
               },
-              "h": {
-                "type": "number",
-                "exclusiveMinimum": 0,
-                "maximum": 1024
-              },
-              "color": {
-                "type": "string",
-                "pattern": "^#[0-9A-Fa-f]{6}$"
-              },
-              "trackColor": {
-                "type": "string",
-                "pattern": "^#[0-9A-Fa-f]{6}$"
-              },
-              "trackSrc": {
-                "type": "string",
-                "pattern": "^[A-Za-z0-9_-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
-                "maxLength": 160
-              },
-              "fillSrc": {
-                "type": "string",
-                "pattern": "^[A-Za-z0-9_-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
-                "maxLength": 160
-              },
-              "thumbSrc": {
-                "type": "string",
-                "pattern": "^[A-Za-z0-9_-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
-                "maxLength": 160
-              },
-              "thumbWidth": {
-                "type": "number",
-                "exclusiveMinimum": 0,
-                "maximum": 1024
-              },
-              "radius": {
-                "type": "number",
-                "minimum": 0,
-                "maximum": 1024
-              },
-              "showFill": {
-                "type": "boolean"
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "const": "icon"
+                  },
+                  "x": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1024
+                  },
+                  "y": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1024
+                  },
+                  "w": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 1024
+                  },
+                  "h": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 1024
+                  },
+                  "action": {
+                    "enum": [
+                      "previous",
+                      "toggle",
+                      "next",
+                      "switch",
+                      "settings",
+                      "rewind",
+                      "forward",
+                      "stop"
+                    ]
+                  },
+                  "src": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+                    "maxLength": 160
+                  },
+                  "playingSrc": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+                    "maxLength": 160
+                  }
+                },
+                "required": [
+                  "type",
+                  "x",
+                  "y",
+                  "w",
+                  "h",
+                  "action",
+                  "src"
+                ],
+                "additionalProperties": false
               }
-            },
-            "required": [
-              "type",
-              "x",
-              "y",
-              "w",
-              "h",
-              "color",
-              "trackColor"
-            ],
-            "additionalProperties": false
-          },
-          {
+            ]
+          }
+        },
+        "touch": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 8,
+          "items": {
             "type": "object",
             "properties": {
-              "type": {
-                "const": "image"
-              },
-              "x": {
-                "type": "number",
-                "minimum": 0,
-                "maximum": 1024
-              },
-              "y": {
-                "type": "number",
-                "minimum": 0,
-                "maximum": 1024
-              },
-              "w": {
-                "type": "number",
-                "exclusiveMinimum": 0,
-                "maximum": 1024
-              },
-              "h": {
-                "type": "number",
-                "exclusiveMinimum": 0,
-                "maximum": 1024
-              },
-              "src": {
-                "type": "string",
-                "pattern": "^[A-Za-z0-9_-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
-                "maxLength": 160
-              }
-            },
-            "required": [
-              "type",
-              "x",
-              "y",
-              "w",
-              "h",
-              "src"
-            ],
-            "additionalProperties": false
-          },
-          {
-            "type": "object",
-            "properties": {
-              "type": {
-                "const": "artwork"
-              },
-              "x": {
-                "type": "number",
-                "minimum": 0,
-                "maximum": 1024
-              },
-              "y": {
-                "type": "number",
-                "minimum": 0,
-                "maximum": 1024
-              },
-              "w": {
-                "type": "number",
-                "exclusiveMinimum": 0,
-                "maximum": 1024
-              },
-              "h": {
-                "type": "number",
-                "exclusiveMinimum": 0,
-                "maximum": 1024
-              },
-              "fallback": {
-                "type": "string",
-                "pattern": "^[A-Za-z0-9_-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
-                "maxLength": 160
-              }
-            },
-            "required": [
-              "type",
-              "x",
-              "y",
-              "w",
-              "h",
-              "fallback"
-            ],
-            "additionalProperties": false
-          },
-          {
-            "type": "object",
-            "properties": {
-              "type": {
-                "const": "text"
-              },
-              "x": {
-                "type": "number",
-                "minimum": 0,
-                "maximum": 1024
-              },
-              "y": {
-                "type": "number",
-                "minimum": 0,
-                "maximum": 1024
-              },
-              "w": {
-                "type": "number",
-                "exclusiveMinimum": 0,
-                "maximum": 1024
-              },
-              "h": {
-                "type": "number",
-                "exclusiveMinimum": 0,
-                "maximum": 1024
-              },
-              "field": {
-                "enum": [
-                  "title",
-                  "artist",
-                  "album",
-                  "player",
-                  "status",
-                  "elapsed",
-                  "duration"
-                ]
-              },
-              "size": {
-                "type": "number",
-                "minimum": 6,
-                "maximum": 160
-              },
-              "color": {
-                "type": "string",
-                "pattern": "^#[0-9A-Fa-f]{6}$"
-              },
-              "font": {
-                "type": "string",
-                "pattern": "^[A-Za-z0-9_-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
-                "maxLength": 160
-              }
-            },
-            "required": [
-              "type",
-              "x",
-              "y",
-              "w",
-              "h",
-              "field",
-              "size",
-              "color",
-              "font"
-            ],
-            "additionalProperties": false
-          },
-          {
-            "type": "object",
-            "properties": {
-              "type": {
-                "const": "icon"
-              },
               "x": {
                 "type": "number",
                 "minimum": 0,
@@ -292,96 +358,2023 @@
                   "stop"
                 ]
               },
-              "src": {
+              "label": {
                 "type": "string",
-                "pattern": "^[A-Za-z0-9_-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
-                "maxLength": 160
-              },
-              "playingSrc": {
-                "type": "string",
-                "pattern": "^[A-Za-z0-9_-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
-                "maxLength": 160
+                "minLength": 1,
+                "maxLength": 80
               }
             },
             "required": [
-              "type",
               "x",
               "y",
               "w",
               "h",
               "action",
-              "src"
+              "label"
             ],
             "additionalProperties": false
           }
-        ]
-      }
+        }
+      },
+      "required": [
+        "version",
+        "id",
+        "name",
+        "width",
+        "height",
+        "layers",
+        "touch"
+      ],
+      "additionalProperties": false
     },
-    "touch": {
-      "type": "array",
-      "minItems": 0,
-      "maxItems": 8,
-      "items": {
-        "type": "object",
-        "properties": {
-          "x": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 1024
-          },
-          "y": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 1024
-          },
-          "w": {
-            "type": "number",
-            "exclusiveMinimum": 0,
-            "maximum": 1024
-          },
-          "h": {
-            "type": "number",
-            "exclusiveMinimum": 0,
-            "maximum": 1024
-          },
-          "action": {
-            "enum": [
-              "previous",
-              "toggle",
-              "next",
-              "switch",
-              "settings",
-              "rewind",
-              "forward",
-              "stop"
-            ]
-          },
-          "label": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 80
+    {
+      "type": "object",
+      "properties": {
+        "version": {
+          "const": 2
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,47}$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 240,
+          "maximum": 1024
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 120,
+          "maximum": 1024
+        },
+        "layers": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/node"
           }
         },
-        "required": [
-          "x",
-          "y",
-          "w",
-          "h",
-          "action",
-          "label"
-        ],
-        "additionalProperties": false
-      }
+        "touch": {
+          "type": "array",
+          "maxItems": 8,
+          "items": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1024
+                  },
+                  "y": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1024
+                  },
+                  "w": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 1024
+                  },
+                  "h": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 1024
+                  },
+                  "action": {
+                    "enum": [
+                      "previous",
+                      "toggle",
+                      "next",
+                      "switch",
+                      "settings",
+                      "rewind",
+                      "forward",
+                      "stop"
+                    ]
+                  },
+                  "label": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  }
+                },
+                "required": [
+                  "x",
+                  "y",
+                  "w",
+                  "h",
+                  "action",
+                  "label"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "target": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9-]{0,47}$"
+                  },
+                  "action": {
+                    "enum": [
+                      "previous",
+                      "toggle",
+                      "next",
+                      "switch",
+                      "settings",
+                      "rewind",
+                      "forward",
+                      "stop"
+                    ]
+                  },
+                  "label": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  }
+                },
+                "required": [
+                  "target",
+                  "action",
+                  "label"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        },
+        "fonts": {
+          "type": "array",
+          "maxItems": 16,
+          "items": {
+            "type": "object",
+            "properties": {
+              "file": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+                "maxLength": 160
+              },
+              "noonnu": {
+                "type": "string",
+                "pattern": "^https://noonnu\\.cc/font_page/[0-9]+$"
+              },
+              "source": {
+                "type": "string",
+                "pattern": "^https://"
+              },
+              "license": {
+                "const": "LICENSE.txt"
+              }
+            },
+            "required": [
+              "file",
+              "noonnu",
+              "source",
+              "license"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "version",
+        "id",
+        "name",
+        "width",
+        "height",
+        "layers",
+        "touch"
+      ],
+      "additionalProperties": false
     }
-  },
-  "required": [
-    "version",
-    "id",
-    "name",
-    "width",
-    "height",
-    "layers",
-    "touch"
   ],
-  "additionalProperties": false
+  "$defs": {
+    "node": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "progress"
+            },
+            "x": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1024
+            },
+            "y": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1024
+            },
+            "w": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 1024
+            },
+            "h": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 1024
+            },
+            "color": {
+              "type": "string",
+              "pattern": "^#[0-9A-Fa-f]{6}$"
+            },
+            "trackColor": {
+              "type": "string",
+              "pattern": "^#[0-9A-Fa-f]{6}$"
+            },
+            "trackSrc": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+              "maxLength": 160
+            },
+            "fillSrc": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+              "maxLength": 160
+            },
+            "thumbSrc": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+              "maxLength": 160
+            },
+            "thumbWidth": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 1024
+            },
+            "radius": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1024
+            },
+            "showFill": {
+              "type": "boolean"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{0,47}$"
+            },
+            "opacity": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "visibleWhen": {
+              "enum": [
+                "always",
+                "playing",
+                "paused",
+                "hasArtwork",
+                "noArtwork"
+              ]
+            },
+            "transform": {
+              "type": "object",
+              "properties": {
+                "rotation": {
+                  "type": "number",
+                  "minimum": -360,
+                  "maximum": 360
+                },
+                "scaleX": {
+                  "type": "number",
+                  "minimum": 0.01,
+                  "maximum": 4
+                },
+                "scaleY": {
+                  "type": "number",
+                  "minimum": 0.01,
+                  "maximum": 4
+                },
+                "pivotX": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "pivotY": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "skewX": {
+                  "type": "number",
+                  "minimum": -1,
+                  "maximum": 1
+                },
+                "skewY": {
+                  "type": "number",
+                  "minimum": -1,
+                  "maximum": 1
+                },
+                "quad": {
+                  "type": "array",
+                  "minItems": 8,
+                  "maxItems": 8,
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            },
+            "mask": {
+              "enum": [
+                "none",
+                "circle",
+                "rounded"
+              ]
+            },
+            "maskSrc": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+              "maxLength": 160
+            },
+            "animation": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "enum": [
+                    "rotate",
+                    "translate",
+                    "pulse",
+                    "frames"
+                  ]
+                },
+                "durationMs": {
+                  "type": "integer",
+                  "minimum": 1000,
+                  "maximum": 60000
+                },
+                "steps": {
+                  "type": "integer",
+                  "minimum": 2,
+                  "maximum": 12
+                },
+                "when": {
+                  "enum": [
+                    "playing",
+                    "always"
+                  ]
+                },
+                "fallback": {
+                  "const": "static"
+                },
+                "from": {
+                  "type": "number",
+                  "minimum": -360,
+                  "maximum": 360
+                },
+                "to": {
+                  "type": "number",
+                  "minimum": -360,
+                  "maximum": 360
+                },
+                "dx": {
+                  "type": "number",
+                  "minimum": -1024,
+                  "maximum": 1024
+                },
+                "dy": {
+                  "type": "number",
+                  "minimum": -1024,
+                  "maximum": 1024
+                },
+                "sources": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 12,
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+                    "maxLength": 160
+                  }
+                }
+              },
+              "required": [
+                "kind",
+                "durationMs",
+                "steps",
+                "when",
+                "fallback"
+              ],
+              "additionalProperties": false
+            },
+            "direction": {
+              "enum": [
+                "horizontal",
+                "vertical",
+                "circular"
+              ]
+            },
+            "strokeWidth": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 128
+            },
+            "startAngle": {
+              "type": "number",
+              "minimum": -360,
+              "maximum": 360
+            },
+            "sweepAngle": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 360
+            }
+          },
+          "required": [
+            "type",
+            "x",
+            "y",
+            "w",
+            "h",
+            "color",
+            "trackColor"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "image"
+            },
+            "x": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1024
+            },
+            "y": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1024
+            },
+            "w": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 1024
+            },
+            "h": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 1024
+            },
+            "src": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+              "maxLength": 160
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{0,47}$"
+            },
+            "opacity": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "visibleWhen": {
+              "enum": [
+                "always",
+                "playing",
+                "paused",
+                "hasArtwork",
+                "noArtwork"
+              ]
+            },
+            "transform": {
+              "type": "object",
+              "properties": {
+                "rotation": {
+                  "type": "number",
+                  "minimum": -360,
+                  "maximum": 360
+                },
+                "scaleX": {
+                  "type": "number",
+                  "minimum": 0.01,
+                  "maximum": 4
+                },
+                "scaleY": {
+                  "type": "number",
+                  "minimum": 0.01,
+                  "maximum": 4
+                },
+                "pivotX": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "pivotY": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "skewX": {
+                  "type": "number",
+                  "minimum": -1,
+                  "maximum": 1
+                },
+                "skewY": {
+                  "type": "number",
+                  "minimum": -1,
+                  "maximum": 1
+                },
+                "quad": {
+                  "type": "array",
+                  "minItems": 8,
+                  "maxItems": 8,
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            },
+            "mask": {
+              "enum": [
+                "none",
+                "circle",
+                "rounded"
+              ]
+            },
+            "radius": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1024
+            },
+            "maskSrc": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+              "maxLength": 160
+            },
+            "animation": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "enum": [
+                    "rotate",
+                    "translate",
+                    "pulse",
+                    "frames"
+                  ]
+                },
+                "durationMs": {
+                  "type": "integer",
+                  "minimum": 1000,
+                  "maximum": 60000
+                },
+                "steps": {
+                  "type": "integer",
+                  "minimum": 2,
+                  "maximum": 12
+                },
+                "when": {
+                  "enum": [
+                    "playing",
+                    "always"
+                  ]
+                },
+                "fallback": {
+                  "const": "static"
+                },
+                "from": {
+                  "type": "number",
+                  "minimum": -360,
+                  "maximum": 360
+                },
+                "to": {
+                  "type": "number",
+                  "minimum": -360,
+                  "maximum": 360
+                },
+                "dx": {
+                  "type": "number",
+                  "minimum": -1024,
+                  "maximum": 1024
+                },
+                "dy": {
+                  "type": "number",
+                  "minimum": -1024,
+                  "maximum": 1024
+                },
+                "sources": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 12,
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+                    "maxLength": 160
+                  }
+                }
+              },
+              "required": [
+                "kind",
+                "durationMs",
+                "steps",
+                "when",
+                "fallback"
+              ],
+              "additionalProperties": false
+            },
+            "fit": {
+              "enum": [
+                "crop",
+                "contain",
+                "stretch"
+              ]
+            }
+          },
+          "required": [
+            "type",
+            "x",
+            "y",
+            "w",
+            "h",
+            "src"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "artwork"
+            },
+            "x": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1024
+            },
+            "y": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1024
+            },
+            "w": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 1024
+            },
+            "h": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 1024
+            },
+            "fallback": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+              "maxLength": 160
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{0,47}$"
+            },
+            "opacity": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "visibleWhen": {
+              "enum": [
+                "always",
+                "playing",
+                "paused",
+                "hasArtwork",
+                "noArtwork"
+              ]
+            },
+            "transform": {
+              "type": "object",
+              "properties": {
+                "rotation": {
+                  "type": "number",
+                  "minimum": -360,
+                  "maximum": 360
+                },
+                "scaleX": {
+                  "type": "number",
+                  "minimum": 0.01,
+                  "maximum": 4
+                },
+                "scaleY": {
+                  "type": "number",
+                  "minimum": 0.01,
+                  "maximum": 4
+                },
+                "pivotX": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "pivotY": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "skewX": {
+                  "type": "number",
+                  "minimum": -1,
+                  "maximum": 1
+                },
+                "skewY": {
+                  "type": "number",
+                  "minimum": -1,
+                  "maximum": 1
+                },
+                "quad": {
+                  "type": "array",
+                  "minItems": 8,
+                  "maxItems": 8,
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            },
+            "mask": {
+              "enum": [
+                "none",
+                "circle",
+                "rounded"
+              ]
+            },
+            "radius": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1024
+            },
+            "maskSrc": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+              "maxLength": 160
+            },
+            "animation": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "enum": [
+                    "rotate",
+                    "translate",
+                    "pulse",
+                    "frames"
+                  ]
+                },
+                "durationMs": {
+                  "type": "integer",
+                  "minimum": 1000,
+                  "maximum": 60000
+                },
+                "steps": {
+                  "type": "integer",
+                  "minimum": 2,
+                  "maximum": 12
+                },
+                "when": {
+                  "enum": [
+                    "playing",
+                    "always"
+                  ]
+                },
+                "fallback": {
+                  "const": "static"
+                },
+                "from": {
+                  "type": "number",
+                  "minimum": -360,
+                  "maximum": 360
+                },
+                "to": {
+                  "type": "number",
+                  "minimum": -360,
+                  "maximum": 360
+                },
+                "dx": {
+                  "type": "number",
+                  "minimum": -1024,
+                  "maximum": 1024
+                },
+                "dy": {
+                  "type": "number",
+                  "minimum": -1024,
+                  "maximum": 1024
+                },
+                "sources": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 12,
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+                    "maxLength": 160
+                  }
+                }
+              },
+              "required": [
+                "kind",
+                "durationMs",
+                "steps",
+                "when",
+                "fallback"
+              ],
+              "additionalProperties": false
+            },
+            "fit": {
+              "enum": [
+                "crop",
+                "contain",
+                "stretch"
+              ]
+            }
+          },
+          "required": [
+            "type",
+            "x",
+            "y",
+            "w",
+            "h",
+            "fallback"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "text"
+            },
+            "x": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1024
+            },
+            "y": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1024
+            },
+            "w": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 1024
+            },
+            "h": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 1024
+            },
+            "field": {
+              "enum": [
+                "title",
+                "artist",
+                "album",
+                "player",
+                "status",
+                "elapsed",
+                "duration",
+                "literal"
+              ]
+            },
+            "size": {
+              "type": "number",
+              "minimum": 6,
+              "maximum": 160
+            },
+            "color": {
+              "type": "string",
+              "pattern": "^#[0-9A-Fa-f]{6}$"
+            },
+            "font": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+              "maxLength": 160
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{0,47}$"
+            },
+            "opacity": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "visibleWhen": {
+              "enum": [
+                "always",
+                "playing",
+                "paused",
+                "hasArtwork",
+                "noArtwork"
+              ]
+            },
+            "transform": {
+              "type": "object",
+              "properties": {
+                "rotation": {
+                  "type": "number",
+                  "minimum": -360,
+                  "maximum": 360
+                },
+                "scaleX": {
+                  "type": "number",
+                  "minimum": 0.01,
+                  "maximum": 4
+                },
+                "scaleY": {
+                  "type": "number",
+                  "minimum": 0.01,
+                  "maximum": 4
+                },
+                "pivotX": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "pivotY": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "skewX": {
+                  "type": "number",
+                  "minimum": -1,
+                  "maximum": 1
+                },
+                "skewY": {
+                  "type": "number",
+                  "minimum": -1,
+                  "maximum": 1
+                },
+                "quad": {
+                  "type": "array",
+                  "minItems": 8,
+                  "maxItems": 8,
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            },
+            "mask": {
+              "enum": [
+                "none",
+                "circle",
+                "rounded"
+              ]
+            },
+            "radius": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1024
+            },
+            "maskSrc": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+              "maxLength": 160
+            },
+            "animation": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "enum": [
+                    "rotate",
+                    "translate",
+                    "pulse",
+                    "frames"
+                  ]
+                },
+                "durationMs": {
+                  "type": "integer",
+                  "minimum": 1000,
+                  "maximum": 60000
+                },
+                "steps": {
+                  "type": "integer",
+                  "minimum": 2,
+                  "maximum": 12
+                },
+                "when": {
+                  "enum": [
+                    "playing",
+                    "always"
+                  ]
+                },
+                "fallback": {
+                  "const": "static"
+                },
+                "from": {
+                  "type": "number",
+                  "minimum": -360,
+                  "maximum": 360
+                },
+                "to": {
+                  "type": "number",
+                  "minimum": -360,
+                  "maximum": 360
+                },
+                "dx": {
+                  "type": "number",
+                  "minimum": -1024,
+                  "maximum": 1024
+                },
+                "dy": {
+                  "type": "number",
+                  "minimum": -1024,
+                  "maximum": 1024
+                },
+                "sources": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 12,
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+                    "maxLength": 160
+                  }
+                }
+              },
+              "required": [
+                "kind",
+                "durationMs",
+                "steps",
+                "when",
+                "fallback"
+              ],
+              "additionalProperties": false
+            },
+            "text": {
+              "type": "string",
+              "maxLength": 2048
+            },
+            "align": {
+              "enum": [
+                "left",
+                "center",
+                "right"
+              ]
+            },
+            "valign": {
+              "enum": [
+                "top",
+                "center",
+                "bottom"
+              ]
+            },
+            "overflow": {
+              "enum": [
+                "ellipsis",
+                "clip",
+                "wrap",
+                "marquee"
+              ]
+            },
+            "maxLines": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 8
+            },
+            "lineSpacing": {
+              "type": "number",
+              "minimum": 0.8,
+              "maximum": 2
+            },
+            "letterSpacing": {
+              "type": "number",
+              "minimum": -0.1,
+              "maximum": 1
+            }
+          },
+          "required": [
+            "type",
+            "x",
+            "y",
+            "w",
+            "h",
+            "field",
+            "size",
+            "color",
+            "font"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "icon"
+            },
+            "x": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1024
+            },
+            "y": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1024
+            },
+            "w": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 1024
+            },
+            "h": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 1024
+            },
+            "action": {
+              "enum": [
+                "previous",
+                "toggle",
+                "next",
+                "switch",
+                "settings",
+                "rewind",
+                "forward",
+                "stop"
+              ]
+            },
+            "src": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+              "maxLength": 160
+            },
+            "playingSrc": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+              "maxLength": 160
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{0,47}$"
+            },
+            "opacity": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "visibleWhen": {
+              "enum": [
+                "always",
+                "playing",
+                "paused",
+                "hasArtwork",
+                "noArtwork"
+              ]
+            },
+            "transform": {
+              "type": "object",
+              "properties": {
+                "rotation": {
+                  "type": "number",
+                  "minimum": -360,
+                  "maximum": 360
+                },
+                "scaleX": {
+                  "type": "number",
+                  "minimum": 0.01,
+                  "maximum": 4
+                },
+                "scaleY": {
+                  "type": "number",
+                  "minimum": 0.01,
+                  "maximum": 4
+                },
+                "pivotX": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "pivotY": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "skewX": {
+                  "type": "number",
+                  "minimum": -1,
+                  "maximum": 1
+                },
+                "skewY": {
+                  "type": "number",
+                  "minimum": -1,
+                  "maximum": 1
+                },
+                "quad": {
+                  "type": "array",
+                  "minItems": 8,
+                  "maxItems": 8,
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            },
+            "mask": {
+              "enum": [
+                "none",
+                "circle",
+                "rounded"
+              ]
+            },
+            "radius": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1024
+            },
+            "maskSrc": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+              "maxLength": 160
+            },
+            "animation": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "enum": [
+                    "rotate",
+                    "translate",
+                    "pulse",
+                    "frames"
+                  ]
+                },
+                "durationMs": {
+                  "type": "integer",
+                  "minimum": 1000,
+                  "maximum": 60000
+                },
+                "steps": {
+                  "type": "integer",
+                  "minimum": 2,
+                  "maximum": 12
+                },
+                "when": {
+                  "enum": [
+                    "playing",
+                    "always"
+                  ]
+                },
+                "fallback": {
+                  "const": "static"
+                },
+                "from": {
+                  "type": "number",
+                  "minimum": -360,
+                  "maximum": 360
+                },
+                "to": {
+                  "type": "number",
+                  "minimum": -360,
+                  "maximum": 360
+                },
+                "dx": {
+                  "type": "number",
+                  "minimum": -1024,
+                  "maximum": 1024
+                },
+                "dy": {
+                  "type": "number",
+                  "minimum": -1024,
+                  "maximum": 1024
+                },
+                "sources": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 12,
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+                    "maxLength": 160
+                  }
+                }
+              },
+              "required": [
+                "kind",
+                "durationMs",
+                "steps",
+                "when",
+                "fallback"
+              ],
+              "additionalProperties": false
+            },
+            "fit": {
+              "enum": [
+                "crop",
+                "contain",
+                "stretch"
+              ]
+            }
+          },
+          "required": [
+            "type",
+            "x",
+            "y",
+            "w",
+            "h",
+            "action",
+            "src"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "group"
+            },
+            "x": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1024
+            },
+            "y": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1024
+            },
+            "w": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 1024
+            },
+            "h": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 1024
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{0,47}$"
+            },
+            "opacity": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "visibleWhen": {
+              "enum": [
+                "always",
+                "playing",
+                "paused",
+                "hasArtwork",
+                "noArtwork"
+              ]
+            },
+            "transform": {
+              "type": "object",
+              "properties": {
+                "rotation": {
+                  "type": "number",
+                  "minimum": -360,
+                  "maximum": 360
+                },
+                "scaleX": {
+                  "type": "number",
+                  "minimum": 0.01,
+                  "maximum": 4
+                },
+                "scaleY": {
+                  "type": "number",
+                  "minimum": 0.01,
+                  "maximum": 4
+                },
+                "pivotX": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "pivotY": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "skewX": {
+                  "type": "number",
+                  "minimum": -1,
+                  "maximum": 1
+                },
+                "skewY": {
+                  "type": "number",
+                  "minimum": -1,
+                  "maximum": 1
+                },
+                "quad": {
+                  "type": "array",
+                  "minItems": 8,
+                  "maxItems": 8,
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            },
+            "mask": {
+              "enum": [
+                "none",
+                "circle",
+                "rounded"
+              ]
+            },
+            "radius": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1024
+            },
+            "maskSrc": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+              "maxLength": 160
+            },
+            "animation": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "enum": [
+                    "rotate",
+                    "translate",
+                    "pulse",
+                    "frames"
+                  ]
+                },
+                "durationMs": {
+                  "type": "integer",
+                  "minimum": 1000,
+                  "maximum": 60000
+                },
+                "steps": {
+                  "type": "integer",
+                  "minimum": 2,
+                  "maximum": 12
+                },
+                "when": {
+                  "enum": [
+                    "playing",
+                    "always"
+                  ]
+                },
+                "fallback": {
+                  "const": "static"
+                },
+                "from": {
+                  "type": "number",
+                  "minimum": -360,
+                  "maximum": 360
+                },
+                "to": {
+                  "type": "number",
+                  "minimum": -360,
+                  "maximum": 360
+                },
+                "dx": {
+                  "type": "number",
+                  "minimum": -1024,
+                  "maximum": 1024
+                },
+                "dy": {
+                  "type": "number",
+                  "minimum": -1024,
+                  "maximum": 1024
+                },
+                "sources": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 12,
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+                    "maxLength": 160
+                  }
+                }
+              },
+              "required": [
+                "kind",
+                "durationMs",
+                "steps",
+                "when",
+                "fallback"
+              ],
+              "additionalProperties": false
+            },
+            "children": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 64,
+              "items": {
+                "$ref": "#/$defs/node"
+              }
+            }
+          },
+          "required": [
+            "type",
+            "x",
+            "y",
+            "w",
+            "h",
+            "children"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "shape"
+            },
+            "x": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1024
+            },
+            "y": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1024
+            },
+            "w": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 1024
+            },
+            "h": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 1024
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{0,47}$"
+            },
+            "opacity": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "visibleWhen": {
+              "enum": [
+                "always",
+                "playing",
+                "paused",
+                "hasArtwork",
+                "noArtwork"
+              ]
+            },
+            "transform": {
+              "type": "object",
+              "properties": {
+                "rotation": {
+                  "type": "number",
+                  "minimum": -360,
+                  "maximum": 360
+                },
+                "scaleX": {
+                  "type": "number",
+                  "minimum": 0.01,
+                  "maximum": 4
+                },
+                "scaleY": {
+                  "type": "number",
+                  "minimum": 0.01,
+                  "maximum": 4
+                },
+                "pivotX": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "pivotY": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "skewX": {
+                  "type": "number",
+                  "minimum": -1,
+                  "maximum": 1
+                },
+                "skewY": {
+                  "type": "number",
+                  "minimum": -1,
+                  "maximum": 1
+                },
+                "quad": {
+                  "type": "array",
+                  "minItems": 8,
+                  "maxItems": 8,
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            },
+            "mask": {
+              "enum": [
+                "none",
+                "circle",
+                "rounded"
+              ]
+            },
+            "radius": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1024
+            },
+            "maskSrc": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+              "maxLength": 160
+            },
+            "animation": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "enum": [
+                    "rotate",
+                    "translate",
+                    "pulse",
+                    "frames"
+                  ]
+                },
+                "durationMs": {
+                  "type": "integer",
+                  "minimum": 1000,
+                  "maximum": 60000
+                },
+                "steps": {
+                  "type": "integer",
+                  "minimum": 2,
+                  "maximum": 12
+                },
+                "when": {
+                  "enum": [
+                    "playing",
+                    "always"
+                  ]
+                },
+                "fallback": {
+                  "const": "static"
+                },
+                "from": {
+                  "type": "number",
+                  "minimum": -360,
+                  "maximum": 360
+                },
+                "to": {
+                  "type": "number",
+                  "minimum": -360,
+                  "maximum": 360
+                },
+                "dx": {
+                  "type": "number",
+                  "minimum": -1024,
+                  "maximum": 1024
+                },
+                "dy": {
+                  "type": "number",
+                  "minimum": -1024,
+                  "maximum": 1024
+                },
+                "sources": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 12,
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+                    "maxLength": 160
+                  }
+                }
+              },
+              "required": [
+                "kind",
+                "durationMs",
+                "steps",
+                "when",
+                "fallback"
+              ],
+              "additionalProperties": false
+            },
+            "shape": {
+              "enum": [
+                "rect",
+                "ellipse",
+                "polygon"
+              ]
+            },
+            "color": {
+              "type": "string",
+              "pattern": "^#[0-9A-Fa-f]{6}$"
+            },
+            "strokeColor": {
+              "type": "string",
+              "pattern": "^#[0-9A-Fa-f]{6}$"
+            },
+            "strokeWidth": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 128
+            },
+            "gradient": {
+              "type": "object",
+              "properties": {
+                "endColor": {
+                  "type": "string",
+                  "pattern": "^#[0-9A-Fa-f]{6}$"
+                },
+                "angle": {
+                  "type": "number",
+                  "minimum": -360,
+                  "maximum": 360
+                }
+              },
+              "required": [
+                "endColor",
+                "angle"
+              ],
+              "additionalProperties": false
+            },
+            "points": {
+              "type": "array",
+              "minItems": 6,
+              "maxItems": 128,
+              "items": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            }
+          },
+          "required": [
+            "type",
+            "x",
+            "y",
+            "w",
+            "h",
+            "shape",
+            "color"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "equalizer"
+            },
+            "x": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1024
+            },
+            "y": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1024
+            },
+            "w": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 1024
+            },
+            "h": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 1024
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{0,47}$"
+            },
+            "opacity": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "visibleWhen": {
+              "enum": [
+                "always",
+                "playing",
+                "paused",
+                "hasArtwork",
+                "noArtwork"
+              ]
+            },
+            "transform": {
+              "type": "object",
+              "properties": {
+                "rotation": {
+                  "type": "number",
+                  "minimum": -360,
+                  "maximum": 360
+                },
+                "scaleX": {
+                  "type": "number",
+                  "minimum": 0.01,
+                  "maximum": 4
+                },
+                "scaleY": {
+                  "type": "number",
+                  "minimum": 0.01,
+                  "maximum": 4
+                },
+                "pivotX": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "pivotY": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "skewX": {
+                  "type": "number",
+                  "minimum": -1,
+                  "maximum": 1
+                },
+                "skewY": {
+                  "type": "number",
+                  "minimum": -1,
+                  "maximum": 1
+                },
+                "quad": {
+                  "type": "array",
+                  "minItems": 8,
+                  "maxItems": 8,
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            },
+            "mask": {
+              "enum": [
+                "none",
+                "circle",
+                "rounded"
+              ]
+            },
+            "radius": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1024
+            },
+            "maskSrc": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+              "maxLength": 160
+            },
+            "animation": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "enum": [
+                    "rotate",
+                    "translate",
+                    "pulse",
+                    "frames"
+                  ]
+                },
+                "durationMs": {
+                  "type": "integer",
+                  "minimum": 1000,
+                  "maximum": 60000
+                },
+                "steps": {
+                  "type": "integer",
+                  "minimum": 2,
+                  "maximum": 12
+                },
+                "when": {
+                  "enum": [
+                    "playing",
+                    "always"
+                  ]
+                },
+                "fallback": {
+                  "const": "static"
+                },
+                "from": {
+                  "type": "number",
+                  "minimum": -360,
+                  "maximum": 360
+                },
+                "to": {
+                  "type": "number",
+                  "minimum": -360,
+                  "maximum": 360
+                },
+                "dx": {
+                  "type": "number",
+                  "minimum": -1024,
+                  "maximum": 1024
+                },
+                "dy": {
+                  "type": "number",
+                  "minimum": -1024,
+                  "maximum": 1024
+                },
+                "sources": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 12,
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\\.(?:png|ttf|otf)$",
+                    "maxLength": 160
+                  }
+                }
+              },
+              "required": [
+                "kind",
+                "durationMs",
+                "steps",
+                "when",
+                "fallback"
+              ],
+              "additionalProperties": false
+            },
+            "mode": {
+              "enum": [
+                "static",
+                "simulated"
+              ]
+            },
+            "color": {
+              "type": "string",
+              "pattern": "^#[0-9A-Fa-f]{6}$"
+            },
+            "bars": {
+              "type": "integer",
+              "minimum": 3,
+              "maximum": 48
+            },
+            "gap": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "seed": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 65535
+            }
+          },
+          "required": [
+            "type",
+            "x",
+            "y",
+            "w",
+            "h",
+            "mode",
+            "color",
+            "bars"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    }
+  }
 }
